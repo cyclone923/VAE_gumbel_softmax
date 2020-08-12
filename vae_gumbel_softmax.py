@@ -61,7 +61,7 @@ def gumbel_softmax_sample(logits, temperature):
     return F.softmax(y / temperature, dim=-1)
 
 
-def gumbel_softmax(logits, temperature):
+def gumbel_softmax(logits, temperature, hard=False):
     """
     ST-gumple-softmax
     input: [*, n_class]
@@ -69,10 +69,14 @@ def gumbel_softmax(logits, temperature):
     """
     logits = logits.view(-1, latent_dim, categorical_dim)
     y = gumbel_softmax_sample(logits, temperature)
-    _, ind = y.max(dim=-1)
-    y_hard = torch.zeros(size=y.size()).to(device).scatter(dim=-1, index=ind.unsqueeze(-1), value=1)
-    y_hard = (y_hard - y).detach() + y
-    return y_hard.view(-1, latent_dim * categorical_dim)
+    y_ret = None
+    if hard:
+        _, ind = y.max(dim=-1)
+        y_hard = torch.zeros(size=y.size()).to(device).scatter(dim=-1, index=ind.unsqueeze(-1), value=1)
+        y_ret = (y_hard - y).detach() + y
+    else:
+        y_ret = y
+    return y_ret.view(-1, latent_dim * categorical_dim)
 
 
 class VAE_gumbel(nn.Module):
@@ -154,7 +158,7 @@ def train(epoch, temp):
     print('====> Epoch: {} Average loss: {:.4f}'.format(epoch, train_loss / len(train_loader.dataset)))
 
 
-def test(epoch, temp=1):
+def test(epoch, temp=temp_min):
     model.eval()
     test_loss = 0
     for i, (data, _) in enumerate(test_loader):
