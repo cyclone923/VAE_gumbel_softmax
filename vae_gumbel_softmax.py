@@ -195,7 +195,7 @@ def run():
             torch.save(model.state_dict(), "model/1.pth")
             best_loss = loss
 
-        ind = torch.randint(low=0, high=10, size=(64, latent_dim, 1))
+        ind = torch.randint(low=0, high=categorical_dim, size=(64, latent_dim, 1))
         z_y = torch.zeros(size=(64, latent_dim, categorical_dim)).scatter(dim=-1, index=ind , value=1).to(device)
         sample = model.decode(z_y).cpu()
         save_image(sample.data.view(64, 1, 28, 28), 'results/sample_' + str(epoch) + '.png')
