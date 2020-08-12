@@ -70,11 +70,14 @@ def gumbel_softmax(logits, temperature):
     """
     y = gumbel_softmax_sample(logits, temperature)
     _, ind = y.max(dim=-1)
-    y_hard = torch.zeros(size=y.size())
+    y_hard = torch.zeros(size=y.size()).view(-1, y.size()[-1])
     if args.cuda:
         y_hard = y_hard.cuda()
-    y_hard.scatter(dim=-1, index=ind.unsqueeze(-1), value=1)
-    return ((y_hard - y).detach() + y).view(-1, latent_dim*categorical_dim)
+    y_hard.scatter_(1, ind.view(-1, 1), 1)
+    y_hard = y_hard.view(*y.size())
+    y_hard = (y_hard - y).detach() + y
+    return y_hard.view(-1, latent_dim * categorical_dim)
+
 
 class VAE_gumbel(nn.Module):
 
@@ -186,8 +189,8 @@ def run():
         train(epoch, temp)
         test(epoch)
 
-        ind = torch.randint(low=0, high=10, size=(64, 20, 1))
-        z = torch.zeros(size=(64, 20, 10)).scatter(dim=-1, index=ind , value=1).view(64, -1)
+        idx = torch.randint(low=0, high=10, size=(64, 20, 1))
+        z = torch.zeros(size=(64, 20, 10)).scatter(dim=2, index=idx , value=1).view(64, -1)
         if args.cuda:
             z = z.cuda()
         sample = model.decode(z).cpu()
