@@ -98,12 +98,12 @@ class VAE_gumbel(nn.Module):
     def encode(self, x):
         h1 = self.relu(self.fc1(x))
         h2 = self.relu(self.fc2(h1))
-        return self.sigmoid(self.fc3(h2))
+        return self.relu(self.fc3(h2))
 
     def decode(self, z):
         h4 = self.relu(self.fc4(z))
         h5 = self.relu(self.fc5(h4))
-        return self.relu(self.fc6(h5))
+        return self.sigmoid(self.fc6(h5))
 
     def forward(self, x, temp):
         q = self.encode(x.view(-1, 784))
