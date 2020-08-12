@@ -59,11 +59,12 @@ def sample_gumbel(shape, eps=1e-20):
 def gumbel_softmax_sample(logits, temperature):
     noise = sample_gumbel(logits.size())
     y = logits + noise
-    # print(temperature)
-    # print(logits[0])
-    # print(noise[0])
-    # print(y[0])
-    # exit(0)
+    if TEST:
+        print(temperature)
+        print(logits[0])
+        print(noise[0])
+        print(y[0])
+        exit(0)
     return F.softmax(y / temperature, dim=-1)
 
 
@@ -140,7 +141,7 @@ def loss_function(recon_x, x, qy):
     g = torch.log(torch.Tensor([1.0 / categorical_dim])).to(device)
     KLD = torch.sum(qy * (log_qy - g), dim=(-2, -1)).mean() # maximize the kl-divergence
 
-    return BCE + KLD
+    return BCE - KLD
 
 
 def train(epoch, temp):
@@ -206,5 +207,8 @@ def single_test():
 
 
 if __name__ == '__main__':
-    run()
-    # single_test()
+    TEST = False
+    if not TEST:
+        run()
+    else:
+        single_test()
