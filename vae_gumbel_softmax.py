@@ -190,7 +190,7 @@ def run():
         test(epoch)
 
         idx = torch.randint(low=0, high=10, size=(64, 20, 1))
-        z = torch.zeros(size=(64, 20, 10)).scatter_(dim=2, index=idx , value=1)
+        z = torch.zeros(size=(64, 20, 10)).scatter_(dim=2, index=idx , value=1).view(64, -1)
         if args.cuda:
             z = z.cuda()
         sample = model.decode(z).cpu()
