@@ -71,6 +71,8 @@ def gumbel_softmax(logits, temperature):
     y = gumbel_softmax_sample(logits, temperature)
     _, ind = y.max(dim=-1)
     y_hard = torch.zeros(size=y.size()).view(-1, y.size()[-1])
+    if args.cuda:
+        y_hard = y_hard.cuda()
     y_hard.scatter_(1, ind.view(-1, 1), 1)
     y_hard = y_hard.view(*y.size())
     y_hard = (y_hard - y).detach() + y
