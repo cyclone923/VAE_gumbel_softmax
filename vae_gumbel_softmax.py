@@ -141,7 +141,7 @@ def loss_function(recon_x, x, qy):
     g = torch.log(torch.Tensor([1.0 / categorical_dim])).to(device)
     KLD = torch.sum(qy * (log_qy - g), dim=(-2, -1)).mean() # maximize the kl-divergence
 
-    return BCE - 10 * KLD
+    return BCE - KLD
 
 
 def train(epoch, temp):
