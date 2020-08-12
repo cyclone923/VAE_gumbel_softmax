@@ -59,12 +59,6 @@ def sample_gumbel(shape, eps=1e-20):
 def gumbel_softmax_sample(logits, temperature):
     noise = sample_gumbel(logits.size())
     y = logits + noise
-    if TEST:
-        print(temperature)
-        print(logits[0])
-        print(noise[0])
-        print(y[0])
-        exit(0)
     return F.softmax(y / temperature, dim=-1)
 
 
@@ -105,7 +99,8 @@ class VAE_gumbel(nn.Module):
     def encode(self, x):
         h1 = self.relu(self.fc1(x))
         h2 = self.relu(self.fc2(h1))
-        return self.relu(self.fc3(h2))
+        h3 = self.relu(self.fc3(h2))
+        return h3.view(-1, latent_dim, categorical_dim)
 
     def decode(self, z_y):
         z = z_y.view(-1, latent_dim * categorical_dim)
@@ -114,10 +109,8 @@ class VAE_gumbel(nn.Module):
         return self.sigmoid(self.fc6(h5))
 
     def forward(self, x, temp):
-        q = self.encode(x.view(-1, 784))
-        q_y = q.view(-1, latent_dim, categorical_dim)
+        q_y = self.encode(x.view(-1, 784))
         z_y = gumbel_softmax(q_y, temp)
-
         return self.decode(z_y), F.softmax(q_y, dim=-1)
 
 
@@ -173,6 +166,9 @@ def test(epoch, temp=temp_min):
     for i, (data, _) in enumerate(test_loader):
         data = data.to(device)
         recon_batch, qy = model(data, temp)
+        if TEST:
+            print(qy[0])
+            exit(0)
         test_loss += loss_function(recon_batch, data, qy).item()
 
         if i == 0:
