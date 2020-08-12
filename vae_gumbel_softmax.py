@@ -116,7 +116,7 @@ latent_dim = 20
 categorical_dim = 10  # one-of-K vector
 
 temp_min = 0.1
-ANNEAL_RATE = 0.2
+ANNEAL_RATE = 0.1
 
 model = VAE_gumbel(args.temp)
 if args.cuda:
