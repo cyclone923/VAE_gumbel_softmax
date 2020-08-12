@@ -15,7 +15,7 @@ from torchvision.utils import save_image
 parser = argparse.ArgumentParser(description='VAE MNIST Example')
 parser.add_argument('--batch-size', type=int, default=64, metavar='N',
                     help='input batch size for training (default: 128)')
-parser.add_argument('--epochs', type=int, default=30, metavar='N',
+parser.add_argument('--epochs', type=int, default=100, metavar='N',
                     help='number of epochs to train (default: 10)')
 parser.add_argument('--temp', type=float, default=1.0, metavar='S',
                     help='tau(temperature) (default: 1.0)')
@@ -57,7 +57,13 @@ def sample_gumbel(shape, eps=1e-20):
 
 
 def gumbel_softmax_sample(logits, temperature):
-    y = logits + sample_gumbel(logits.size())
+    noise = sample_gumbel(logits.size())
+    y = logits + noise
+    # print(temperature)
+    # print(logits[0][0])
+    # print(noise[0][0])
+    # print(y[0][0])
+    # exit(0)
     return F.softmax(y / temperature, dim=-1)
 
 
@@ -110,13 +116,14 @@ class VAE_gumbel(nn.Module):
         q = self.encode(x.view(-1, 784))
         q_y = q.view(-1, latent_dim, categorical_dim)
         z_y = gumbel_softmax(q_y, temp)
+
         return self.decode(z_y), F.softmax(q_y, dim=-1)
 
 
-latent_dim = 20
+latent_dim = 10
 categorical_dim = 10  # one-of-K vector
 
-temp_min = 0.1
+temp_min = 0.05
 ANNEAL_RATE = 0.05
 
 model = VAE_gumbel(args.temp)
@@ -165,8 +172,6 @@ def test(epoch, temp=temp_min):
     for i, (data, _) in enumerate(test_loader):
         data = data.to(device)
         recon_batch, qy = model(data, temp)
-        # print(qy[0])
-        # exit(0)
         test_loss += loss_function(recon_batch, data, qy).item()
 
         if i == 0:
