@@ -60,9 +60,9 @@ def gumbel_softmax_sample(logits, temperature):
     noise = sample_gumbel(logits.size())
     y = logits + noise
     # print(temperature)
-    # print(logits[0][0])
-    # print(noise[0][0])
-    # print(y[0][0])
+    # print(logits[0])
+    # print(noise[0])
+    # print(y[0])
     # exit(0)
     return F.softmax(y / temperature, dim=-1)
 
@@ -120,7 +120,7 @@ class VAE_gumbel(nn.Module):
         return self.decode(z_y), F.softmax(q_y, dim=-1)
 
 
-latent_dim = 60
+latent_dim = 20
 categorical_dim = 2  # one-of-K vector
 
 temp_min = 0.1
