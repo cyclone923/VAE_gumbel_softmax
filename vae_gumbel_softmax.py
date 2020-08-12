@@ -111,7 +111,7 @@ class VAE_gumbel(nn.Module):
 latent_dim = 20
 categorical_dim = 10  # one-of-K vector
 
-temp_min = 0.5
+temp_min = 0.2
 ANNEAL_RATE = 0.05
 
 model = VAE_gumbel(args.temp)
@@ -161,6 +161,7 @@ def test(epoch, temp=1):
         data = data.to(device)
         recon_batch, qy = model(data, temp)
         test_loss += loss_function(recon_batch, data, qy).item()
+
         if i == 0:
             n = min(data.size(0), 8)
             comparison = torch.cat([data[:n], recon_batch.view(args.batch_size, 1, 28, 28)[:n]])
@@ -168,14 +169,19 @@ def test(epoch, temp=1):
 
     test_loss /= len(test_loader.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
+    return test_loss
 
 
 def run():
+    best_loss = float('inf')
     for epoch in range(args.epochs):
         temp = np.maximum(args.temp * np.exp(-ANNEAL_RATE * epoch), temp_min)
         print(temp)
         train(epoch, temp)
-        test(epoch)
+        loss = test(epoch)
+        if loss < best_loss:
+            torch.save(model.state_dict(), "model/0.pth")
+            best_loss = loss
 
         ind = torch.randint(low=0, high=10, size=(64, 20, 1))
         z = torch.zeros(size=(64, 20, 10)).scatter(dim=-1, index=ind , value=1).view(64, -1).to(device)
