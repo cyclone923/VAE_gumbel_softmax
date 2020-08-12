@@ -131,7 +131,7 @@ def loss_function(recon_x, x, qy):
 
     log_qy = torch.log(qy + 1e-20)
     g = torch.log(torch.Tensor([1.0 / categorical_dim])).to(device)
-    KLD = torch.sum(qy * (log_qy - g), dim=-1).mean() # maximize the kl-divergence
+    KLD = torch.sum(qy * (log_qy - g), dim=(-2, -1)).mean() # maximize the kl-divergence
 
     return BCE + KLD
 
@@ -165,6 +165,8 @@ def test(epoch, temp=temp_min):
     for i, (data, _) in enumerate(test_loader):
         data = data.to(device)
         recon_batch, qy = model(data, temp)
+        # print(qy[0])
+        # exit(0)
         test_loss += loss_function(recon_batch, data, qy).item()
 
         if i == 0:
@@ -194,7 +196,7 @@ def run():
         save_image(sample.data.view(64, 1, 28, 28), 'results/sample_' + str(epoch) + '.png')
 
 def single_test():
-    model.load_state_dict(torch.load("model/0.pth", map_location='cpu'))
+    model.load_state_dict(torch.load("model/1.pth", map_location='cpu'))
     test(0)
 
 
