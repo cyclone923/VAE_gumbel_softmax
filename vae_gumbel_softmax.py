@@ -120,8 +120,8 @@ class VAE_gumbel(nn.Module):
         return self.decode(z_y), F.softmax(q_y, dim=-1)
 
 
-latent_dim = 2
-categorical_dim = 20  # one-of-K vector
+latent_dim = 60
+categorical_dim = 2  # one-of-K vector
 
 temp_min = 0.1
 ANNEAL_RATE = 0.05
