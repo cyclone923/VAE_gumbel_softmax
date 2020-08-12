@@ -22,7 +22,7 @@ parser.add_argument('--epochs', type=int, default=10, metavar='N',
                     help='number of epochs to train (default: 10)')
 parser.add_argument('--temp', type=float, default=1.0, metavar='S',
                     help='tau(temperature) (default: 1.0)')
-parser.add_argument('--no-cuda', action='store_true', default=False,
+parser.add_argument('--no-cuda', action='store_true', default=True,
                     help='enables CUDA training')
 parser.add_argument('--seed', type=int, default=1, metavar='S',
                     help='random seed (default: 1)')
@@ -50,7 +50,10 @@ test_loader = torch.utils.data.DataLoader(
     batch_size=args.batch_size, shuffle=True, **kwargs)
 
 def sample_gumbel(shape, eps=1e-20):
-    U = torch.rand(shape).cuda()
+    if args.cuda:
+        U = torch.rand(shape).cuda()
+    else:
+        U = torch.rand(shape)
     return -Variable(torch.log(-torch.log(U + eps) + eps))
 
 def gumbel_softmax_sample(logits, temperature):
@@ -76,7 +79,7 @@ def gumbel_softmax(logits, temperature):
 
 class VAE_gumbel(nn.Module):
 
-    def __init__(self,temp):
+    def __init__(self, temp):
         super(VAE_gumbel, self).__init__()
 
         self.fc1 = nn.Linear(784, 512)
@@ -101,7 +104,7 @@ class VAE_gumbel(nn.Module):
         h5 = self.relu(self.fc5(h4))
         return self.sigmoid(self.fc6(h5))
 
-    def forward(self, x,temp):
+    def forward(self, x, temp):
         q = self.encode(x.view(-1, 784))
         q_y = q.view(q.size(0),latent_dim,categorical_dim)
         z = gumbel_softmax(q_y,temp)
@@ -125,7 +128,10 @@ def loss_function(recon_x, x,qy):
     BCE = F.binary_cross_entropy(recon_x, x.view(-1, 784), size_average=False)
 
     log_qy = torch.log(qy+1e-20)
-    g = Variable(torch.log(torch.Tensor([1.0/categorical_dim])).cuda())
+    if args.cuda:
+        g = Variable(torch.log(torch.Tensor([1.0/categorical_dim])).cuda())
+    else:
+        g = Variable(torch.log(torch.Tensor([1.0 / categorical_dim])))
     KLD = torch.sum(qy*(log_qy - g),dim=-1).mean()
 
     return BCE + KLD
