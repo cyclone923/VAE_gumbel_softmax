@@ -69,7 +69,6 @@ def gumbel_softmax(logits, temperature, hard=False):
     """
     logits = logits.view(-1, latent_dim, categorical_dim)
     y = gumbel_softmax_sample(logits, temperature)
-    y_ret = None
     if hard:
         _, ind = y.max(dim=-1)
         y_hard = torch.zeros(size=y.size()).to(device).scatter(dim=-1, index=ind.unsqueeze(-1), value=1)
@@ -115,7 +114,7 @@ class VAE_gumbel(nn.Module):
 latent_dim = 20
 categorical_dim = 10  # one-of-K vector
 
-temp_min = 0.2
+temp_min = 0.01
 ANNEAL_RATE = 0.05
 
 model = VAE_gumbel(args.temp)
