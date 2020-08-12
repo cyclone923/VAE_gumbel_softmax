@@ -135,7 +135,7 @@ def train(epoch, temp):
     model.train()
     train_loss = 0
     for batch_idx, (data, _) in enumerate(train_loader):
-        data.to(device)
+        data = data.to(device)
         optimizer.zero_grad()
         recon_batch, qy = model(data, temp)
         loss = loss_function(recon_batch, data, qy)
