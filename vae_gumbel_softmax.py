@@ -189,7 +189,7 @@ def run():
             best_loss = loss
 
         ind = torch.randint(low=0, high=10, size=(64, 20, 1))
-        z_y = torch.zeros(size=(64, 20, 10)).scatter(dim=-1, index=ind , value=1)
+        z_y = torch.zeros(size=(64, 20, 10)).scatter(dim=-1, index=ind , value=1).to(device)
         sample = model.decode(z_y).cpu()
         save_image(sample.data.view(64, 1, 28, 28), 'results/sample_' + str(epoch) + '.png')
 
