@@ -15,7 +15,7 @@ from torchvision.utils import save_image
 parser = argparse.ArgumentParser(description='VAE MNIST Example')
 parser.add_argument('--batch-size', type=int, default=64, metavar='N',
                     help='input batch size for training (default: 128)')
-parser.add_argument('--epochs', type=int, default=100, metavar='N',
+parser.add_argument('--epochs', type=int, default=30, metavar='N',
                     help='number of epochs to train (default: 10)')
 parser.add_argument('--temp', type=float, default=1.0, metavar='S',
                     help='tau(temperature) (default: 1.0)')
@@ -129,8 +129,8 @@ def loss_function(recon_x, x, qy):
 
     log_qy = torch.log(qy + 1e-20)
     g = torch.log(torch.Tensor([1.0 / categorical_dim])).to(device)
-    # KLD = torch.sum(qy * (log_qy - g), dim=-1).mean()
-    KLD = 0
+    KLD = torch.sum(qy * (log_qy - g), dim=-1).mean()
+    # KLD = 0
 
     return BCE + KLD
 
@@ -184,7 +184,7 @@ def run():
         train(epoch, temp)
         loss = test(epoch)
         if loss < best_loss:
-            torch.save(model.state_dict(), "model/0.pth")
+            torch.save(model.state_dict(), "model/1.pth")
             best_loss = loss
 
         ind = torch.randint(low=0, high=10, size=(64, 20, 1))
