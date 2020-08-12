@@ -13,7 +13,7 @@ from torchvision import datasets, transforms
 from torchvision.utils import save_image
 
 parser = argparse.ArgumentParser(description='VAE MNIST Example')
-parser.add_argument('--batch-size', type=int, default=64, metavar='N',
+parser.add_argument('--batch-size', type=int, default=256, metavar='N',
                     help='input batch size for training (default: 128)')
 parser.add_argument('--epochs', type=int, default=10, metavar='N',
                     help='number of epochs to train (default: 10)')
@@ -76,7 +76,7 @@ def gumbel_softmax(logits, temperature):
     y_hard.scatter_(1, ind.view(-1, 1), 1)
     y_hard = y_hard.view(*y.size())
     y_hard = (y_hard - y).detach() + y
-    return y_hard
+    return y_hard.view(-1, latent_dim * categorical_dim)
 
 
 class VAE_gumbel(nn.Module):
@@ -86,9 +86,10 @@ class VAE_gumbel(nn.Module):
 
         self.fc1 = nn.Linear(784, 512)
         self.fc2 = nn.Linear(512, 256)
-        self.fc3 = nn.Linear(256, categorical_dim)
+        self.fc3 = nn.Linear(256, latent_dim * categorical_dim)
 
-        self.fc4 = nn.Linear(categorical_dim, 256)
+
+        self.fc4 = nn.Linear(latent_dim * categorical_dim, 256)
         self.fc5 = nn.Linear(256, 512)
         self.fc6 = nn.Linear(512, 784)
 
@@ -106,11 +107,13 @@ class VAE_gumbel(nn.Module):
         return self.sigmoid(self.fc6(h5))
 
     def forward(self, x, temp):
-        q_z = self.encode(x.view(-1, 784))
-        z = gumbel_softmax(q_z, temp)
-        return self.decode(z), F.softmax(q_z, dim=1)
+        q = self.encode(x.view(-1, 784))
+        q_y = q.view(q.size(0), latent_dim, categorical_dim)
+        z = gumbel_softmax(q_y, temp)
+        return self.decode(z), F.softmax(q, dim=1)
 
 
+latent_dim = 20
 categorical_dim = 10  # one-of-K vector
 
 temp_min = 0.5
@@ -186,13 +189,12 @@ def run():
         train(epoch, temp)
         test(epoch)
 
-        # q = torch.rand(64, 200)
-        # if args.cuda:
-        #     q = q.cuda()
-        # q_y = q.view(q.size(0), latent_dim, categorical_dim)
-        # z = gumbel_softmax(q_y, temp)
-        # sample = model.decode(z).cpu()
-        # save_image(sample.data.view(64, 1, 28, 28), 'results/sample_' + str(epoch) + '.png')
+        idx = torch.randint(low=0, high=10, size=(64, 20, 1))
+        z = torch.zeros(size=(64, 20, 10)).scatter_(dim=2, index=idx , value=1)
+        if args.cuda:
+            z = z.cuda()
+        sample = model.decode(z).cpu()
+        save_image(sample.data.view(64, 1, 28, 28), 'results/sample_' + str(epoch) + '.png')
 
 
 if __name__ == '__main__':
