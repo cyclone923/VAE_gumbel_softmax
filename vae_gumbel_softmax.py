@@ -7,13 +7,10 @@ import argparse
 import numpy as np
 
 import torch
-import torch.nn.functional as F
-from torch.autograd import Variable
 from torch import nn, optim
 from torch.nn import functional as F
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
-
 
 parser = argparse.ArgumentParser(description='VAE MNIST Example')
 parser.add_argument('--batch-size', type=int, default=128, metavar='N',
@@ -29,36 +26,37 @@ parser.add_argument('--seed', type=int, default=1, metavar='S',
 parser.add_argument('--log-interval', type=int, default=10, metavar='N',
                     help='how many batches to wait before logging training status')
 
-
-
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
-
 
 torch.manual_seed(args.seed)
 if args.cuda:
     torch.cuda.manual_seed(args.seed)
 
-
 kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
+
 train_loader = torch.utils.data.DataLoader(
     datasets.MNIST('../data', train=True, download=True,
                    transform=transforms.ToTensor()),
     batch_size=args.batch_size, shuffle=True, **kwargs)
+
 test_loader = torch.utils.data.DataLoader(
     datasets.MNIST('../data', train=False, transform=transforms.ToTensor()),
     batch_size=args.batch_size, shuffle=True, **kwargs)
+
 
 def sample_gumbel(shape, eps=1e-20):
     if args.cuda:
         U = torch.rand(shape).cuda()
     else:
         U = torch.rand(shape)
-    return -Variable(torch.log(-torch.log(U + eps) + eps))
+    return -torch.log(-torch.log(U + eps) + eps)
+
 
 def gumbel_softmax_sample(logits, temperature):
     y = logits + sample_gumbel(logits.size())
     return F.softmax(y / temperature, dim=-1)
+
 
 def gumbel_softmax(logits, temperature):
     """
@@ -67,14 +65,12 @@ def gumbel_softmax(logits, temperature):
     return: flatten --> [*, n_class] an one-hot vector
     """
     y = gumbel_softmax_sample(logits, temperature)
-    shape = y.size()
     _, ind = y.max(dim=-1)
-    y_hard = torch.zeros_like(y).view(-1, shape[-1])
+    y_hard = torch.zeros(size=y.size()).view(-1, y.size()[-1])
     y_hard.scatter_(1, ind.view(-1, 1), 1)
-    y_hard = y_hard.view(*shape)
+    y_hard = y_hard.view(*y.size())
     y_hard = (y_hard - y).detach() + y
-    return y_hard.view(-1,latent_dim*categorical_dim)
-
+    return y_hard.view(-1, latent_dim * categorical_dim)
 
 
 class VAE_gumbel(nn.Module):
@@ -83,12 +79,12 @@ class VAE_gumbel(nn.Module):
         super(VAE_gumbel, self).__init__()
 
         self.fc1 = nn.Linear(784, 512)
-        self.fc2 = nn.Linear(512,256)
-        self.fc3 = nn.Linear(256, latent_dim*categorical_dim)
-    
-        self.fc4 = nn.Linear(latent_dim*categorical_dim, 256)
-        self.fc5 = nn.Linear(256,512)
-        self.fc6 = nn.Linear(512,784)
+        self.fc2 = nn.Linear(512, 256)
+        self.fc3 = nn.Linear(256, latent_dim * categorical_dim)
+
+        self.fc4 = nn.Linear(latent_dim * categorical_dim, 256)
+        self.fc5 = nn.Linear(256, 512)
+        self.fc6 = nn.Linear(512, 784)
 
         self.relu = nn.ReLU()
         self.sigmoid = nn.Sigmoid()
@@ -96,8 +92,7 @@ class VAE_gumbel(nn.Module):
     def encode(self, x):
         h1 = self.relu(self.fc1(x))
         h2 = self.relu(self.fc2(h1))
-        return self.relu(self.fc3(h2))
-
+        return self.sigmoid(self.fc3(h2))
 
     def decode(self, z):
         h4 = self.relu(self.fc4(z))
@@ -106,16 +101,16 @@ class VAE_gumbel(nn.Module):
 
     def forward(self, x, temp):
         q = self.encode(x.view(-1, 784))
-        q_y = q.view(q.size(0),latent_dim,categorical_dim)
-        z = gumbel_softmax(q_y,temp)
-        return self.decode(z),F.softmax(q)
+        q_y = q.view(q.size(0), latent_dim, categorical_dim)
+        z = gumbel_softmax(q_y, temp)
+        return self.decode(z), F.softmax(q, dim=1)
+
 
 latent_dim = 20
-categorical_dim = 10 # one-of-K vector
+categorical_dim = 10  # one-of-K vector
 
-temp_min = 0.5
-ANNEAL_RATE = 0.00003
-
+temp_min = 0.3
+ANNEAL_RATE = 0.2
 
 model = VAE_gumbel(args.temp)
 if args.cuda:
@@ -124,80 +119,76 @@ optimizer = optim.Adam(model.parameters(), lr=1e-3)
 
 
 # Reconstruction + KL divergence losses summed over all elements and batch
-def loss_function(recon_x, x,qy):
-    BCE = F.binary_cross_entropy(recon_x, x.view(-1, 784), size_average=False)
+def loss_function(recon_x, x, qy):
+    BCE = F.binary_cross_entropy(recon_x, x.view(-1, 784), reduction='sum')
 
-    log_qy = torch.log(qy+1e-20)
+    log_qy = torch.log(qy + 1e-20)
+
     if args.cuda:
-        g = Variable(torch.log(torch.Tensor([1.0/categorical_dim])).cuda())
+        g = torch.log(torch.Tensor([1.0 / categorical_dim])).cuda()
     else:
-        g = Variable(torch.log(torch.Tensor([1.0 / categorical_dim])))
-    KLD = torch.sum(qy*(log_qy - g),dim=-1).mean()
+        g = torch.log(torch.Tensor([1.0 / categorical_dim]))
+
+    KLD = torch.sum(qy * (log_qy - g), dim=-1).mean()
 
     return BCE + KLD
 
 
-def train(epoch):
+def train(epoch, temp):
     model.train()
     train_loss = 0
-    temp = args.temp
     for batch_idx, (data, _) in enumerate(train_loader):
-        data = Variable(data)
         if args.cuda:
             data = data.cuda()
         optimizer.zero_grad()
-        recon_batch,qy  = model(data,temp)
-        loss = loss_function(recon_batch, data,qy)
+        recon_batch, qy = model(data, temp)
+        loss = loss_function(recon_batch, data, qy)
         loss.backward()
-        train_loss += loss.data[0]
+        train_loss += loss.item()
         optimizer.step()
-        if batch_idx % 100 == 1:
-            temp = np.maximum(temp*np.exp(-ANNEAL_RATE*batch_idx),temp_min)
 
-        if batch_idx % args.log_interval == 0:
-            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                epoch, batch_idx * len(data), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader),
-                loss.data[0] / len(data)))
+        # if batch_idx % args.log_interval == 0:
+        #     print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format
+        #     (
+        #         epoch, batch_idx * len(data), len(train_loader.dataset),
+        #         100. * batch_idx / len(train_loader),
+        #         loss.item() / len(data))
+        #     )
 
-    print('====> Epoch: {} Average loss: {:.4f}'.format(
-          epoch, train_loss / len(train_loader.dataset)))
+    print('====> Epoch: {} Average loss: {:.4f}'.format(epoch, train_loss / len(train_loader.dataset)))
 
 
-def test(epoch):
+def test(epoch, temp=1):
     model.eval()
     test_loss = 0
-    temp = args.temp
     for i, (data, _) in enumerate(test_loader):
         if args.cuda:
             data = data.cuda()
-        data = Variable(data, volatile=True)
-        recon_batch,qy = model(data,temp)
-        test_loss += loss_function(recon_batch, data,qy).data[0]
-        if i % 100 == 1:
-            temp = np.maximum(temp*np.exp(-ANNEAL_RATE*i),temp_min)
+        recon_batch, qy = model(data, temp)
+        test_loss += loss_function(recon_batch, data, qy).item()
         if i == 0:
             n = min(data.size(0), 8)
-            comparison = torch.cat([data[:n],
-                                  recon_batch.view(args.batch_size, 1, 28, 28)[:n]])
-            save_image(comparison.data.cpu(),
-                     'results/reconstruction_' + str(epoch) + '.png', nrow=n)
+            comparison = torch.cat([data[:n], recon_batch.view(args.batch_size, 1, 28, 28)[:n]])
+            save_image(comparison.cpu(), 'results/reconstruction_' + str(epoch) + '.png', nrow=n)
 
     test_loss /= len(test_loader.dataset)
     print('====> Test set loss: {:.4f}'.format(test_loss))
 
 
 def run():
-    for epoch in range(1, args.epochs + 1):
-        train(epoch)
+    for epoch in range(args.epochs):
+        temp = np.maximum(args.temp * np.exp(-ANNEAL_RATE * epoch), temp_min)
+        print(temp)
+        train(epoch, temp)
         test(epoch)
-        sample = Variable(torch.randn(64, 200))
-        if args.cuda:
-            sample = sample.cuda()
-        sample = model.decode(sample).cpu()
-        save_image(sample.data.view(64, 1, 28, 28),
-                   'results/sample_' + str(epoch) + '.png')
 
+        q = torch.rand(64, 200)
+        if args.cuda:
+            q = q.cuda()
+        q_y = q.view(q.size(0), latent_dim, categorical_dim)
+        z = gumbel_softmax(q_y, temp)
+        sample = model.decode(z).cpu()
+        save_image(sample.data.view(64, 1, 28, 28), 'results/sample_' + str(epoch) + '.png')
 
 
 if __name__ == '__main__':
