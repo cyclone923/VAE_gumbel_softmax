@@ -103,7 +103,7 @@ class VAE_gumbel(nn.Module):
     def decode(self, z):
         h4 = self.relu(self.fc4(z))
         h5 = self.relu(self.fc5(h4))
-        return self.sigmoid(self.fc6(h5))
+        return self.relu(self.fc6(h5))
 
     def forward(self, x, temp):
         q = self.encode(x.view(-1, 784))
@@ -188,13 +188,13 @@ def run():
         train(epoch, temp)
         test(epoch)
 
-        q = torch.rand(64, 200)
-        if args.cuda:
-            q = q.cuda()
-        q_y = q.view(q.size(0), latent_dim, categorical_dim)
-        z = gumbel_softmax(q_y, temp)
-        sample = model.decode(z).cpu()
-        save_image(sample.data.view(64, 1, 28, 28), 'results/sample_' + str(epoch) + '.png')
+        # q = torch.rand(64, 200)
+        # if args.cuda:
+        #     q = q.cuda()
+        # q_y = q.view(q.size(0), latent_dim, categorical_dim)
+        # z = gumbel_softmax(q_y, temp)
+        # sample = model.decode(z).cpu()
+        # save_image(sample.data.view(64, 1, 28, 28), 'results/sample_' + str(epoch) + '.png')
 
 
 if __name__ == '__main__':
