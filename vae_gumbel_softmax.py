@@ -68,13 +68,14 @@ def gumbel_softmax(logits, temperature):
     input: [*, n_class]
     return: flatten --> [*, n_class] an one-hot vector
     """
-    y = gumbel_softmax_sample(logits, temperature)
+    q_y = logits.view(-1, latent_dim, categorical_dim)
+    y = gumbel_softmax_sample(q_y, temperature)
     _, ind = y.max(dim=-1)
     y_hard = torch.zeros(size=y.size())
     if args.cuda:
         y_hard = y_hard.cuda()
     y_hard.scatter(dim=-1, index=ind.unsqueeze(-1), value=1)
-    return (y_hard - y).detach() + y
+    return ((y_hard - y).detach() + y).view(-1, latent_dim*categorical_dim)
 
 class VAE_gumbel(nn.Module):
 
@@ -105,8 +106,7 @@ class VAE_gumbel(nn.Module):
 
     def forward(self, x, temp):
         q = self.encode(x.view(-1, 784))
-        q_y = q.view(q.size(0), latent_dim, categorical_dim)
-        z = gumbel_softmax(q_y, temp)
+        z = gumbel_softmax(q, temp)
         return self.decode(z), F.softmax(q, dim=1)
 
 
