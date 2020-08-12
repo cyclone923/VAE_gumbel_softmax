@@ -29,8 +29,10 @@ parser.add_argument('--log-interval', type=int, default=10, metavar='N',
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
 if args.cuda:
+    device = 'cuda:0'
     print("Using GPU")
 else:
+    device = 'cpu'
     print("Using CPU")
 
 torch.manual_seed(args.seed)
@@ -50,10 +52,7 @@ test_loader = torch.utils.data.DataLoader(
 
 
 def sample_gumbel(shape, eps=1e-20):
-    if args.cuda:
-        U = torch.rand(shape).cuda()
-    else:
-        U = torch.rand(shape)
+    U = torch.rand(shape).to(device)
     return -torch.log(-torch.log(U + eps) + eps)
 
 
@@ -71,9 +70,7 @@ def gumbel_softmax(logits, temperature):
     logits = logits.view(-1, latent_dim, categorical_dim)
     y = gumbel_softmax_sample(logits, temperature)
     _, ind = y.max(dim=-1)
-    y_hard = torch.zeros(size=y.size()).scatter(dim=-1, index=ind.unsqueeze(-1), value=1)
-    if args.cuda:
-        y_hard = y_hard.cuda()
+    y_hard = torch.zeros(size=y.size()).to(device).scatter(dim=-1, index=ind.unsqueeze(-1), value=1)
     y_hard = (y_hard - y).detach() + y
     return y_hard.view(-1, latent_dim * categorical_dim)
 
@@ -128,12 +125,7 @@ def loss_function(recon_x, x, qy):
     BCE = F.binary_cross_entropy(recon_x, x.view(-1, 784), reduction='sum')
 
     log_qy = torch.log(qy + 1e-20)
-
-    if args.cuda:
-        g = torch.log(torch.Tensor([1.0 / categorical_dim])).cuda()
-    else:
-        g = torch.log(torch.Tensor([1.0 / categorical_dim]))
-
+    g = torch.log(torch.Tensor([1.0 / categorical_dim])).to(device)
     KLD = torch.sum(qy * (log_qy - g), dim=-1).mean()
 
     return BCE + KLD
@@ -143,10 +135,8 @@ def train(epoch, temp):
     model.train()
     train_loss = 0
     for batch_idx, (data, _) in enumerate(train_loader):
-        if args.cuda:
-            data = data.cuda()
         optimizer.zero_grad()
-        recon_batch, qy = model(data, temp)
+        recon_batch, qy = model(data.to(device), temp)
         loss = loss_function(recon_batch, data, qy)
         loss.backward()
         train_loss += loss.item()
@@ -167,9 +157,7 @@ def test(epoch, temp=1):
     model.eval()
     test_loss = 0
     for i, (data, _) in enumerate(test_loader):
-        if args.cuda:
-            data = data.cuda()
-        recon_batch, qy = model(data, temp)
+        recon_batch, qy = model(data.to(device), temp)
         test_loss += loss_function(recon_batch, data, qy).item()
         if i == 0:
             n = min(data.size(0), 8)
@@ -188,9 +176,7 @@ def run():
         test(epoch)
 
         ind = torch.randint(low=0, high=10, size=(64, 20, 1))
-        z = torch.zeros(size=(64, 20, 10)).scatter(dim=-1, index=ind , value=1).view(64, -1)
-        if args.cuda:
-            z = z.cuda()
+        z = torch.zeros(size=(64, 20, 10)).scatter(dim=-1, index=ind , value=1).view(64, -1).to(device)
         sample = model.decode(z).cpu()
         save_image(sample.data.view(64, 1, 28, 28), 'results/sample_' + str(epoch) + '.png')
 
