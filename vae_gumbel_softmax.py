@@ -61,21 +61,21 @@ def gumbel_softmax_sample(logits, temperature):
     return F.softmax(y / temperature, dim=-1)
 
 
-def gumbel_softmax(logits, temperature, hard=False):
+def gumbel_softmax(q_y, temperature, hard=False):
     """
     ST-gumple-softmax
     input: [*, n_class]
     return: flatten --> [*, n_class] an one-hot vector
     """
-    logits = logits.view(-1, latent_dim, categorical_dim)
-    y = gumbel_softmax_sample(logits, temperature)
+
+    y = gumbel_softmax_sample(q_y, temperature)
     if hard:
         _, ind = y.max(dim=-1)
         y_hard = torch.zeros(size=y.size()).to(device).scatter(dim=-1, index=ind.unsqueeze(-1), value=1)
         y_ret = (y_hard - y).detach() + y
     else:
         y_ret = y
-    return y_ret.view(-1, latent_dim * categorical_dim)
+    return y_ret
 
 
 class VAE_gumbel(nn.Module):
@@ -100,15 +100,17 @@ class VAE_gumbel(nn.Module):
         h2 = self.relu(self.fc2(h1))
         return self.relu(self.fc3(h2))
 
-    def decode(self, z):
+    def decode(self, z_y):
+        z = z_y.view(-1, latent_dim * categorical_dim)
         h4 = self.relu(self.fc4(z))
         h5 = self.relu(self.fc5(h4))
         return self.sigmoid(self.fc6(h5))
 
     def forward(self, x, temp):
         q = self.encode(x.view(-1, 784))
-        z = gumbel_softmax(q, temp)
-        return self.decode(z), F.softmax(q, dim=1)
+        q_y = q.view(-1, latent_dim, categorical_dim)
+        z_y = gumbel_softmax(q_y, temp)
+        return self.decode(z_y), F.softmax(q_y, dim=-1)
 
 
 latent_dim = 20
@@ -129,8 +131,7 @@ def loss_function(recon_x, x, qy):
 
     log_qy = torch.log(qy + 1e-20)
     g = torch.log(torch.Tensor([1.0 / categorical_dim])).to(device)
-    KLD = torch.sum(qy * (log_qy - g), dim=-1).mean()
-    # KLD = 0
+    KLD = torch.sum(qy * (log_qy - g), dim=-1).mean() # maximize the kl-divergence
 
     return BCE + KLD
 
@@ -188,10 +189,15 @@ def run():
             best_loss = loss
 
         ind = torch.randint(low=0, high=10, size=(64, 20, 1))
-        z = torch.zeros(size=(64, 20, 10)).scatter(dim=-1, index=ind , value=1).view(64, -1).to(device)
-        sample = model.decode(z).cpu()
+        z_y = torch.zeros(size=(64, 20, 10)).scatter(dim=-1, index=ind , value=1)
+        sample = model.decode(z_y).cpu()
         save_image(sample.data.view(64, 1, 28, 28), 'results/sample_' + str(epoch) + '.png')
+
+def single_test():
+    model.load_state_dict(torch.load("model/0.pth", map_location='cpu'))
+    test(0)
 
 
 if __name__ == '__main__':
     run()
+    # single_test()
