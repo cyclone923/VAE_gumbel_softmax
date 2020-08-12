@@ -124,7 +124,7 @@ class VAE_gumbel(nn.Module):
 latent_dim = 20
 categorical_dim = 2  # one-of-K vector
 
-temp_min = 0.5
+temp_min = 0.1
 ANNEAL_RATE = 0.05
 
 model = VAE_gumbel(args.temp)
@@ -141,7 +141,7 @@ def loss_function(recon_x, x, qy):
     g = torch.log(torch.Tensor([1.0 / categorical_dim])).to(device)
     KLD = torch.sum(qy * (log_qy - g), dim=(-2, -1)).mean() # maximize the kl-divergence
 
-    return BCE + KLD
+    return BCE - KLD
 
 
 def train(epoch, temp):
