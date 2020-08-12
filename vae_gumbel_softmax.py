@@ -135,8 +135,9 @@ def train(epoch, temp):
     model.train()
     train_loss = 0
     for batch_idx, (data, _) in enumerate(train_loader):
+        data.to(device)
         optimizer.zero_grad()
-        recon_batch, qy = model(data.to(device), temp)
+        recon_batch, qy = model(data, temp)
         loss = loss_function(recon_batch, data, qy)
         loss.backward()
         train_loss += loss.item()
@@ -157,7 +158,8 @@ def test(epoch, temp=1):
     model.eval()
     test_loss = 0
     for i, (data, _) in enumerate(test_loader):
-        recon_batch, qy = model(data.to(device), temp)
+        data = data.to(device)
+        recon_batch, qy = model(data, temp)
         test_loss += loss_function(recon_batch, data, qy).item()
         if i == 0:
             n = min(data.size(0), 8)
