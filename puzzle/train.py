@@ -28,7 +28,7 @@ def train(dataloader, vae, temp, optimizer):
     for i, data in enumerate(dataloader):
         data = data.to(device)
         optimizer.zero_grad()
-        recon_batch, qy = vae(data, temp)
+        recon_batch, qy, _ = vae(data, temp)
         loss = loss_function(recon_batch, data, qy)
         loss.backward()
         train_loss += loss.item()
@@ -36,14 +36,15 @@ def train(dataloader, vae, temp, optimizer):
     return train_loss / len(dataloader)
 
 def test(dataloader, vae, temp=TEMP_MIN):
-    vae.train()
+    vae.eval()
     test_loss = 0
-    for i, data in enumerate(dataloader):
-        data = data.to(device)
-        recon_batch, qy = vae(data, temp)
-        loss = loss_function(recon_batch, data, qy)
-        loss.backward()
-        test_loss += loss.item()
+    with torch.no_grad():
+        for i, data in enumerate(dataloader):
+            data = data.to(device)
+            recon_batch, qy, _ = vae(data, temp)
+            loss = loss_function(recon_batch, data, qy)
+            loss.backward()
+            test_loss += loss.item()
     return test_loss / len(dataloader)
 
 def run(n_epoch):
@@ -60,9 +61,9 @@ def run(n_epoch):
         temp = np.maximum(TEMP_BEGIN * np.exp(-ANNEAL_RATE * e), TEMP_MIN)
         print("Epoch: {}, Temperature: {}".format(e, temp))
         train_loss = train(train_loader, vae, temp, optimizer)
-        print('====> Epoch: {} Average loss: {:.4f}'.format(e, train_loss))
+        print('====> Epoch: {} Average train loss: {:.4f}'.format(e, train_loss))
         test_loss = test(test_loader, vae)
-        print('====> Epoch: {} Average loss: {:.4f}'.format(e, test_loss))
+        print('====> Epoch: {} Average test loss: {:.4f}'.format(e, test_loss))
         if test_loss < best_loss:
             print("Save Model")
             torch.save(vae.state_dict(), "puzzle/model/0.pth")
@@ -71,4 +72,4 @@ def run(n_epoch):
 
 
 if __name__ == "__main__":
-    run(100)
+    run(1000)

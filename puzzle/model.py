@@ -11,7 +11,7 @@ else:
     device = 'cpu'
     print("Using CPU")
 
-LATENT_DIM = 20
+LATENT_DIM = 32
 CATEGORICAL_DIM = 2
 
 def sample_gumbel(shape, eps=1e-20):
@@ -47,15 +47,15 @@ class VAE_gumbel(nn.Module):
     def __init__(self):
         super(VAE_gumbel, self).__init__()
 
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=16, kernel_size=2, stride=2)
-        self.conv2 = nn.Conv2d(in_channels=16, out_channels=8, kernel_size=2, stride=2)
-        self.conv3 = nn.Conv2d(in_channels=8, out_channels=4, kernel_size=2, stride=2)
-        self.fc4 = nn.Linear(in_features=4*6*6, out_features=LATENT_DIM*CATEGORICAL_DIM)
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=64, kernel_size=2, stride=2)
+        self.conv2 = nn.Conv2d(in_channels=64, out_channels=32, kernel_size=2, stride=2)
+        self.conv3 = nn.Conv2d(in_channels=32, out_channels=16, kernel_size=2, stride=2)
+        self.fc4 = nn.Linear(in_features=16*6*6, out_features=LATENT_DIM*CATEGORICAL_DIM)
 
-        self.fc5 = nn.Linear(in_features=LATENT_DIM * CATEGORICAL_DIM, out_features=4*6*6)
-        self.conv_trans6 = nn.ConvTranspose2d(in_channels=4, out_channels=8, kernel_size=2, stride=2)
-        self.conv_trans7 = nn.ConvTranspose2d(in_channels=8, out_channels=16, kernel_size=2, stride=2)
-        self.conv_trans8 = nn.ConvTranspose2d(in_channels=16, out_channels=1, kernel_size=2, stride=2)
+        self.fc5 = nn.Linear(in_features=LATENT_DIM * CATEGORICAL_DIM, out_features=16*6*6)
+        self.conv_trans6 = nn.ConvTranspose2d(in_channels=16, out_channels=32, kernel_size=2, stride=2)
+        self.conv_trans7 = nn.ConvTranspose2d(in_channels=32, out_channels=64, kernel_size=2, stride=2)
+        self.conv_trans8 = nn.ConvTranspose2d(in_channels=64, out_channels=1, kernel_size=2, stride=2)
 
         self.relu = nn.ReLU()
         self.sigmoid = nn.Sigmoid()
@@ -77,4 +77,4 @@ class VAE_gumbel(nn.Module):
     def forward(self, x, temp=1):
         q_y = self.encode(x)
         z_y = gumbel_softmax(q_y, temp)
-        return self.decode(z_y), F.softmax(q_y, dim=-1)
+        return self.decode(z_y), F.softmax(q_y, dim=-1), z_y
