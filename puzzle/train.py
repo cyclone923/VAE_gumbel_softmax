@@ -11,7 +11,7 @@ TEMP_BEGIN = 5
 TEMP_MIN = 0.7
 ANNEAL_RATE = 0.03
 TRAIN_BZ = 100
-TEST_BZ = 500
+TEST_BZ = 720
 
 # Reconstruction + KL divergence losses summed over all elements and batch
 def loss_function(recon_x, x, qy):
