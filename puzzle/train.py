@@ -64,4 +64,4 @@ def run(n_epoch):
 
 
 if __name__ == "__main__":
-    run(10)
+    run(100)
