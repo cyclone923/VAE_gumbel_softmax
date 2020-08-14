@@ -9,7 +9,7 @@ import numpy as np
 
 TEMP_BEGIN = 5
 TEMP_MIN = 0.7
-ANNEAL_RATE = 0.05
+ANNEAL_RATE = 0.001
 TRAIN_BZ = 100
 TEST_BZ = 500
 
@@ -69,7 +69,7 @@ def run(n_epoch):
     for e in range(n_epoch):
         temp = np.maximum(TEMP_BEGIN * np.exp(-ANNEAL_RATE * e), TEMP_MIN)
         print("Epoch: {}, Temperature: {}, Lr: {}".format(e, temp, scheculer.get_lr()))
-        train_loss = train(train_loader, vae, 0, optimizer)
+        train_loss = train(train_loader, vae, temp, optimizer)
         print('====> Epoch: {} Average train loss: {:.4f}'.format(e, train_loss))
         test_loss = test(test_loader, vae)
         print('====> Epoch: {} Average test loss: {:.4f}'.format(e, test_loss))
