@@ -4,10 +4,14 @@ from torch.utils.data import Dataset, DataLoader
 
 
 TRAIN_EXAMPLES = 20000
+TEST_EXAMPLES = 5000
 
 class SaeDataSet(Dataset):
     def __init__(self, is_train):
-        self.data = np.load(PUZZLE_FILE)[:TRAIN_EXAMPLES]
+        if is_train:
+            self.data = np.load(PUZZLE_FILE)[:TRAIN_EXAMPLES]
+        else:
+            self.data = np.load(PUZZLE_FILE)[TRAIN_EXAMPLES: TRAIN_EXAMPLES+TEST_EXAMPLES]
 
     def __getitem__(self, item):
         return self.data[item]
