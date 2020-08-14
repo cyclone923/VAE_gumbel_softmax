@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 PUZZLE_FILE = "puzzle/puzzle_data/puzzles.npy"
 BASE_SIZE = 16
 
+np.random.seed(0)
+
 def generate_bases():
     def normalize(image):
         # into 0-1 range
@@ -72,7 +74,7 @@ def generate_puzzles(base):
         imgs.append(puzzle)
     imgs = np.stack(imgs)
     print(imgs.shape)
-    np.save(PUZZLE_FILE, imgs)
+    np.save(PUZZLE_FILE, np.random.shuffle(imgs))
 
 
 if __name__ == "__main__":

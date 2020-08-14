@@ -3,9 +3,11 @@ from puzzle.generate_puzzle import PUZZLE_FILE
 from torch.utils.data import Dataset, DataLoader
 
 
+TRAIN_EXAMPLES = 20000
+
 class SaeDataSet(Dataset):
-    def __init__(self):
-        self.data = np.load(PUZZLE_FILE)
+    def __init__(self, is_train):
+        self.data = np.load(PUZZLE_FILE)[:TRAIN_EXAMPLES]
 
     def __getitem__(self, item):
         return self.data[item]
