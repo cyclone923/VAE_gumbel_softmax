@@ -20,7 +20,7 @@ def loss_function(recon_x, x, qy):
 
     return BCE - KLD
 
-def train(dataloader, vae,  optimizer, temp):
+def train(dataloader, vae, temp, optimizer):
     vae.train()
     train_loss = 0
     for i, data in enumerate(dataloader):
@@ -33,16 +33,33 @@ def train(dataloader, vae,  optimizer, temp):
         optimizer.step()
     return train_loss / len(dataloader.dataset)
 
+def test(dataloader, vae, temp=TEMP_MIN):
+    vae.train()
+    test_loss = 0
+    for i, data in enumerate(dataloader):
+        data = data.to(device)
+        recon_batch, qy = vae(data, temp)
+        loss = loss_function(recon_batch, data, qy)
+        loss.backward()
+        test_loss += loss.item()
+    return test_loss / len(dataloader.dataset)
+
 def run(n_epoch):
     train_loader = DataLoader(SaeDataSet(is_train=True), batch_size=100, shuffle=True)
-    print(len(train_loader))
+    test_loader = DataLoader(SaeDataSet(is_train=False), batch_size=500, shuffle=True)
     vae = VAE_gumbel().to(device)
     optimizer = Adam(vae.parameters(), lr=1e-3)
+    best_loss = float('inf')
     for e in range(n_epoch):
         temp = np.maximum(TEMP_BEGIN * np.exp(-ANNEAL_RATE * e), TEMP_MIN)
-        train_loss = train(train_loader, vae, optimizer, temp)
+        train_loss = train(train_loader, vae, temp, optimizer)
         print('====> Epoch: {} Average loss: {:.4f}'.format(e, train_loss))
-    torch.save(vae.state_dict(), "puzzle/model/0.pth")
+        test_loss = test(test_loader, vae)
+        print('====> Epoch: {} Average loss: {:.4f}'.format(e, test_loss))
+        if test_loss < best_loss:
+            print("Save Model")
+            torch.save(vae.state_dict(), "puzzle/model/0.pth")
+            best_loss = test_loss
 
 
 
