@@ -20,9 +20,9 @@ def run():
             data = data.to(device)
             recon_batch, qy, sample = vae(data, TEMP_MIN)
             plt.imshow(data.squeeze().cpu().numpy(), cmap='gray')
-            plt.pause(0.5)
+            plt.pause(0.2)
             plt.imshow(recon_batch.squeeze().cpu().numpy(), cmap='gray')
-            plt.pause(0.5)
+            plt.pause(0.2)
 
 
 

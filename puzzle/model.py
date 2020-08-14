@@ -47,15 +47,13 @@ class VAE_gumbel(nn.Module):
     def __init__(self):
         super(VAE_gumbel, self).__init__()
 
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=64, kernel_size=2, stride=2)
-        self.conv2 = nn.Conv2d(in_channels=64, out_channels=32, kernel_size=2, stride=2)
-        self.conv3 = nn.Conv2d(in_channels=32, out_channels=16, kernel_size=2, stride=2)
-        self.fc4 = nn.Linear(in_features=16*6*6, out_features=LATENT_DIM*CATEGORICAL_DIM)
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=64, kernel_size=4, stride=4)
+        self.conv2 = nn.Conv2d(in_channels=64, out_channels=16, kernel_size=4, stride=4)
+        self.fc3 = nn.Linear(in_features=16*3*3, out_features=LATENT_DIM*CATEGORICAL_DIM)
 
-        self.fc5 = nn.Linear(in_features=LATENT_DIM * CATEGORICAL_DIM, out_features=16*6*6)
-        self.conv_trans6 = nn.ConvTranspose2d(in_channels=16, out_channels=32, kernel_size=2, stride=2)
-        self.conv_trans7 = nn.ConvTranspose2d(in_channels=32, out_channels=64, kernel_size=2, stride=2)
-        self.conv_trans8 = nn.ConvTranspose2d(in_channels=64, out_channels=1, kernel_size=2, stride=2)
+        self.fc4 = nn.Linear(in_features=LATENT_DIM * CATEGORICAL_DIM, out_features=16*3*3)
+        self.conv_trans5 = nn.ConvTranspose2d(in_channels=16, out_channels=64, kernel_size=4, stride=4)
+        self.conv_trans6 = nn.ConvTranspose2d(in_channels=64, out_channels=1, kernel_size=4, stride=4)
 
         self.relu = nn.ReLU()
         self.sigmoid = nn.Sigmoid()
@@ -63,16 +61,14 @@ class VAE_gumbel(nn.Module):
     def encode(self, x):
         h1 = self.relu(self.conv1(x))
         h2 = self.relu(self.conv2(h1))
-        h3 = self.relu(self.conv3(h2))
-        h4 = self.relu(self.fc4(h3.view(-1, 16*6*6)))
-        return h4.view(-1, LATENT_DIM, CATEGORICAL_DIM)
+        h3 = self.relu(self.fc3(h2.view(-1, 16*3*3)))
+        return h3.view(-1, LATENT_DIM, CATEGORICAL_DIM)
 
     def decode(self, z_y):
         z = z_y.view(-1, LATENT_DIM * CATEGORICAL_DIM)
-        h5 = self.relu(self.fc5(z).view(-1, 16, 6, 6))
-        h6 = self.relu(self.conv_trans6(h5))
-        h7 = self.relu(self.conv_trans7(h6))
-        return self.sigmoid(self.conv_trans8(h7))
+        h4 = self.relu(self.fc4(z).view(-1, 16, 3, 3))
+        h5 = self.relu(self.conv_trans5(h4))
+        return self.sigmoid(self.conv_trans6(h5))
 
     def forward(self, x, temp=1):
         q_y = self.encode(x)
