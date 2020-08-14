@@ -64,12 +64,12 @@ class VAE_gumbel(nn.Module):
         h1 = self.relu(self.conv1(x))
         h2 = self.relu(self.conv2(h1))
         h3 = self.relu(self.conv3(h2))
-        h4 = self.relu(self.fc4(h3.view(-1, 4*6*6)))
+        h4 = self.relu(self.fc4(h3.view(-1, 16*6*6)))
         return h4.view(-1, LATENT_DIM, CATEGORICAL_DIM)
 
     def decode(self, z_y):
         z = z_y.view(-1, LATENT_DIM * CATEGORICAL_DIM)
-        h5 = self.relu(self.fc5(z).view(-1, 4, 6, 6))
+        h5 = self.relu(self.fc5(z).view(-1, 16, 6, 6))
         h6 = self.relu(self.conv_trans6(h5))
         h7 = self.relu(self.conv_trans7(h6))
         return self.sigmoid(self.conv_trans8(h7))
