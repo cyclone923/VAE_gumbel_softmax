@@ -6,7 +6,7 @@ from skimage.exposure import equalize_hist
 import itertools
 import matplotlib.pyplot as plt
 
-PUZZLE_FILE = "puzzle_data/puzzles"
+PUZZLE_FILE = "puzzle/puzzle_data/puzzles.npy"
 BASE_SIZE = 16
 
 def generate_bases():
@@ -31,7 +31,7 @@ def generate_bases():
         image = enhance(image)
         return image
 
-    mnist_data = datasets.MNIST('../data', train=False)
+    mnist_data = datasets.MNIST('./data', train=False)
     ten_digit = defaultdict(lambda : [])
 
     for data, target in zip(mnist_data.data, mnist_data.targets):
@@ -61,16 +61,17 @@ def generate_puzzles(base):
         if n % 1000 == 0:
             print(n)
         p = np.resize(p, (3,3))
-        puzzle = np.zeros(shape=(BASE_SIZE*3, BASE_SIZE*3), dtype=np.float32)
+        puzzle = np.zeros(shape=(1, BASE_SIZE*3, BASE_SIZE*3), dtype=np.float32)
         for i, base_row in enumerate(p):
             s_i = i * BASE_SIZE
             e_i = i * BASE_SIZE + BASE_SIZE
             for j, base_ind in enumerate(base_row):
                 s_j = j*BASE_SIZE
                 e_j = j*BASE_SIZE + BASE_SIZE
-                puzzle[s_i:e_i, s_j:e_j] = base[base_ind]
+                puzzle[:, s_i:e_i, s_j:e_j] = base[base_ind]
         imgs.append(puzzle)
     imgs = np.stack(imgs)
+    print(imgs.shape)
     np.save(PUZZLE_FILE, imgs)
 
 
