@@ -74,7 +74,8 @@ def generate_puzzles(base):
         imgs.append(puzzle)
     imgs = np.stack(imgs)
     print(imgs.shape)
-    np.save(PUZZLE_FILE, np.random.shuffle(imgs))
+    np.random.shuffle(imgs)
+    np.save(PUZZLE_FILE, imgs)
 
 
 if __name__ == "__main__":
