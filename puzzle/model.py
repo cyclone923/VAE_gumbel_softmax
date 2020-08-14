@@ -22,7 +22,7 @@ def sample_gumbel(shape, eps=1e-20):
 def gumbel_softmax_sample(logits, temperature):
     if temperature == 0:
         _, ind = torch.max(logits, dim=-1)
-        ret = torch.zeros(size=logits.size()).scatter(dim=-1, index=ind.unsqueeze(-1), value=1).to(device)
+        ret = torch.zeros(size=logits.size()).to(device).scatter(dim=-1, index=ind.unsqueeze(-1), value=1)
     else:
         noise = sample_gumbel(logits.size())
         y = logits + noise
