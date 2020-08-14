@@ -35,7 +35,7 @@ def train(dataloader, vae, temp, optimizer):
         optimizer.step()
     return train_loss / len(dataloader)
 
-def test(dataloader, vae, temp=TEMP_MIN):
+def test(dataloader, vae, temp=0):
     vae.eval()
     test_loss = 0
     with torch.no_grad():
@@ -59,7 +59,7 @@ def run(n_epoch):
     for e in range(n_epoch):
         temp = np.maximum(TEMP_BEGIN * np.exp(-ANNEAL_RATE * e), TEMP_MIN)
         print("Epoch: {}, Temperature: {}".format(e, temp))
-        train_loss = train(train_loader, vae, temp, optimizer)
+        train_loss = train(train_loader, vae, 0, optimizer)
         print('====> Epoch: {} Average train loss: {:.4f}'.format(e, train_loss))
         test_loss = test(test_loader, vae)
         print('====> Epoch: {} Average test loss: {:.4f}'.format(e, test_loss))
