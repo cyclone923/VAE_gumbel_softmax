@@ -6,13 +6,11 @@ import matplotlib.pyplot as plt
 import torch
 
 
-
-
-
 def run():
     view_set = SaeDataSet(is_train=False)
     view_loader = DataLoader(view_set, batch_size=1, shuffle=True)
     vae = VAE_gumbel().to(device)
+    vae.load_state_dict(torch.load("puzzle/model/0.pth", map_location='cpu'))
     vae.eval()
     plt.gca()
     with torch.no_grad():

@@ -14,13 +14,13 @@ TEST_BZ = 500
 
 # Reconstruction + KL divergence losses summed over all elements and batch
 def loss_function(recon_x, x, qy):
-    BCE = F.binary_cross_entropy(recon_x, x, reduction='none').sum(dim=(1,2)).mean()
+    BCE = F.binary_cross_entropy(recon_x, x, reduction='none').sum(dim=(1,2,3)).mean()
+    #
+    # log_qy = torch.log(qy + 1e-20)
+    # g = torch.log(torch.Tensor([1.0 / CATEGORICAL_DIM])).to(device)
+    # KLD = torch.sum(qy * (log_qy - g), dim=(-2, -1)).mean() # maximize the kl-divergence
 
-    log_qy = torch.log(qy + 1e-20)
-    g = torch.log(torch.Tensor([1.0 / CATEGORICAL_DIM])).to(device)
-    KLD = torch.sum(qy * (log_qy - g), dim=(-2, -1)).mean() # maximize the kl-divergence
-
-    return BCE + KLD
+    return BCE
 
 def train(dataloader, vae, temp, optimizer):
     vae.train()
