@@ -7,7 +7,7 @@ import itertools
 import matplotlib.pyplot as plt
 
 PUZZLE_FILE = "puzzle/puzzle_data/puzzles.npy"
-BASE_SIZE = 16
+BASE_SIZE = 14
 
 np.random.seed(0)
 

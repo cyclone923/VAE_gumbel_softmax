@@ -6,15 +6,15 @@ from torch.nn import functional as F
 from torch.optim import Adam
 import numpy as np
 
-TEMP_BEGIN = 1
-TEMP_MIN = 0.2
+TEMP_BEGIN = 5
+TEMP_MIN = 0.7
 ANNEAL_RATE = 0.05
 TRAIN_BZ = 100
 TEST_BZ = 500
 
 # Reconstruction + KL divergence losses summed over all elements and batch
 def loss_function(recon_x, x, qy):
-    BCE = F.binary_cross_entropy(recon_x, x, reduction='none').sum(dim=(1,2,3)).mean()
+    BCE = F.binary_cross_entropy(recon_x, x, reduction='none').sum(dim=(1,2)).mean()
 
     log_qy = torch.log(qy + 1e-20)
     g = torch.log(torch.Tensor([1.0 / CATEGORICAL_DIM])).to(device)
