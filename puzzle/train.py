@@ -43,7 +43,6 @@ def test(dataloader, vae, temp=TEMP_MIN):
             data = data.to(device)
             recon_batch, qy, _ = vae(data, temp)
             loss = loss_function(recon_batch, data, qy)
-            loss.backward()
             test_loss += loss.item()
     return test_loss / len(dataloader)
 
