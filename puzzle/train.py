@@ -7,7 +7,7 @@ from torch.optim import Adam
 import numpy as np
 
 TEMP_BEGIN = 1
-TEMP_MIN = 0.5
+TEMP_MIN = 0.2
 ANNEAL_RATE = 0.05
 TRAIN_BZ = 100
 TEST_BZ = 500
@@ -20,7 +20,7 @@ def loss_function(recon_x, x, qy):
     g = torch.log(torch.Tensor([1.0 / CATEGORICAL_DIM])).to(device)
     KLD = torch.sum(qy * (log_qy - g), dim=(-2, -1)).mean() # maximize the kl-divergence
 
-    return BCE - KLD
+    return BCE + KLD
 
 def train(dataloader, vae, temp, optimizer):
     vae.train()
