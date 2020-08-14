@@ -4,6 +4,7 @@ import torch
 from torch.utils.data import DataLoader
 from torch.nn import functional as F
 from torch.optim import Adam
+from torch.optim.lr_scheduler import LambdaLR
 import numpy as np
 
 TEMP_BEGIN = 5
@@ -46,6 +47,14 @@ def test(dataloader, vae, temp=0):
             test_loss += loss.item()
     return test_loss / len(dataloader)
 
+def lr_scedule(e):
+    if e < 100:
+        lr = 1e-3
+    else:
+        lr = 1e-4
+    return lr
+
+
 def run(n_epoch):
     train_set = SaeDataSet(is_train=True)
     test_set = SaeDataSet(is_train=False)
@@ -55,10 +64,11 @@ def run(n_epoch):
     test_loader = DataLoader(test_set, batch_size=TEST_BZ, shuffle=True)
     vae = VAE_gumbel().to(device)
     optimizer = Adam(vae.parameters(), lr=1e-3)
+    scheculer = LambdaLR(optimizer, lr_scedule)
     best_loss = float('inf')
     for e in range(n_epoch):
         temp = np.maximum(TEMP_BEGIN * np.exp(-ANNEAL_RATE * e), TEMP_MIN)
-        print("Epoch: {}, Temperature: {}".format(e, temp))
+        print("Epoch: {}, Temperature: {}, Lr: {}".format(e, temp, scheculer.get_lr()))
         train_loss = train(train_loader, vae, 0, optimizer)
         print('====> Epoch: {} Average train loss: {:.4f}'.format(e, train_loss))
         test_loss = test(test_loader, vae)
@@ -67,8 +77,9 @@ def run(n_epoch):
             print("Save Model")
             torch.save(vae.state_dict(), "puzzle/model/0.pth")
             best_loss = test_loss
+        scheculer.step()
 
 
 
 if __name__ == "__main__":
-    run(1000)
+    run(200)
