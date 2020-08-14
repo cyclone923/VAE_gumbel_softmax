@@ -35,6 +35,7 @@ def train(dataloader, vae,  optimizer, temp):
 
 def run(n_epoch):
     train_loader = DataLoader(SaeDataSet(is_train=True), batch_size=100, shuffle=True)
+    print(len(train_loader))
     vae = VAE_gumbel().to(device)
     optimizer = Adam(vae.parameters(), lr=1e-3)
     for e in range(n_epoch):
