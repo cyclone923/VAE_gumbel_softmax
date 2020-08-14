@@ -34,7 +34,7 @@ def train(dataloader, vae,  optimizer, temp):
     return train_loss / len(dataloader.dataset)
 
 def run(n_epoch):
-    train_loader = DataLoader(SaeDataSet(is_train=True), batch_size=64, shuffle=True)
+    train_loader = DataLoader(SaeDataSet(is_train=True), batch_size=100, shuffle=True)
     vae = VAE_gumbel().to(device)
     optimizer = Adam(vae.parameters(), lr=1e-3)
     for e in range(n_epoch):
