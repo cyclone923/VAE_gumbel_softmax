@@ -4,7 +4,7 @@ from torch.utils.data import Dataset, DataLoader
 
 
 TRAIN_EXAMPLES = 90000
-TEST_EXAMPLES = 10000
+# TEST_EXAMPLES = 10000
 
 class SaeDataSet(Dataset):
     def __init__(self, is_train):
@@ -12,7 +12,7 @@ class SaeDataSet(Dataset):
         if is_train:
             self.data = data[:TRAIN_EXAMPLES]
         else:
-            self.data = data[TRAIN_EXAMPLES: TRAIN_EXAMPLES+TEST_EXAMPLES]
+            self.data = data[TRAIN_EXAMPLES:]
 
     def __getitem__(self, item):
         return self.data[item]

@@ -1,6 +1,6 @@
 from puzzle.dataset import SaeDataSet
 from puzzle.model import VAE_gumbel, device
-from puzzle.train import TEMP_MIN
+import numpy as np
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import torch
@@ -12,14 +12,24 @@ def run():
     vae = VAE_gumbel().to(device)
     vae.load_state_dict(torch.load("puzzle/model/0.pth", map_location='cpu'))
     vae.eval()
-    plt.gca()
+
     with torch.no_grad():
+        fig, axs = plt.subplots(2, 2)
+        for _, ax in np.ndenumerate(axs):
+            ax.axis('off')
+        plt.gca()
         for _, data in enumerate(view_loader):
             data = data.to(device)
-            recon_batch, qy, sample = vae(data, TEMP_MIN)
-            plt.imshow(data.squeeze().cpu().numpy(), cmap='gray')
-            plt.pause(0.2)
-            plt.imshow(recon_batch.squeeze().cpu().numpy(), cmap='gray')
+            recon_batch, _, sample = vae(data, 0)
+
+            data = data.squeeze().cpu().numpy()
+            recon_batch = recon_batch.squeeze().cpu().numpy()
+            axs[0,0].imshow(data, cmap='gray')
+            axs[0,1].imshow(recon_batch, cmap='gray')
+            diff = data - recon_batch
+            axs[1,0].imshow(diff, cmap='gray')
+            sample = sample.squeeze().cpu().numpy()
+            axs[1,1].imshow(sample, cmap='gray')
             plt.pause(0.2)
 
 

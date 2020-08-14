@@ -29,7 +29,8 @@ def train(dataloader, vae, temp, optimizer):
     for i, data in enumerate(dataloader):
         data = data.to(device)
         optimizer.zero_grad()
-        recon_batch, qy, _ = vae(data, temp)
+        noise = torch.normal(mean=0, std=0.4, size=data.size()).to(device)
+        recon_batch, qy, _ = vae(data+noise, temp)
         loss = loss_function(recon_batch, data, qy)
         loss.backward()
         train_loss += loss.item()
@@ -58,6 +59,7 @@ def lr_scedule(e):
 def run(n_epoch):
     train_set = SaeDataSet(is_train=True)
     test_set = SaeDataSet(is_train=False)
+    print("Training Examples: {}, Testing Examples: {}".format(len(train_set), len(test_set)))
     assert len(train_set) % TRAIN_BZ == 0
     assert len(test_set) % TEST_BZ == 0
     train_loader = DataLoader(train_set, batch_size=TRAIN_BZ, shuffle=True)
@@ -82,4 +84,4 @@ def run(n_epoch):
 
 
 if __name__ == "__main__":
-    run(200)
+    run(150)

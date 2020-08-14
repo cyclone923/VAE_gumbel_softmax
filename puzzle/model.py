@@ -70,8 +70,7 @@ class VAE_gumbel(nn.Module):
 
 
     def encode(self, x):
-        noise = torch.normal(mean=0, std=0.4, size=x.size()).to(device)
-        h1 = self.dpt1(self.bn1(torch.tanh(self.conv1(x + noise))))
+        h1 = self.dpt1(self.bn1(torch.tanh(self.conv1(x))))
         h2 = self.dpt2(self.bn2(torch.tanh(self.conv2(h1))))
         h3 = self.fc3(torch.flatten(h2, start_dim=1, end_dim=-1))
         return h3.view(-1, LATENT_DIM, CATEGORICAL_DIM)
