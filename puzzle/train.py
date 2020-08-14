@@ -9,6 +9,8 @@ import numpy as np
 TEMP_BEGIN = 1
 TEMP_MIN = 0.5
 ANNEAL_RATE = 0.05
+TRAIN_BZ = 100
+TEST_BZ = 500
 
 # Reconstruction + KL divergence losses summed over all elements and batch
 def loss_function(recon_x, x, qy):
@@ -31,7 +33,7 @@ def train(dataloader, vae, temp, optimizer):
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
-    return train_loss / len(dataloader.dataset)
+    return train_loss / len(dataloader)
 
 def test(dataloader, vae, temp=TEMP_MIN):
     vae.train()
@@ -42,11 +44,15 @@ def test(dataloader, vae, temp=TEMP_MIN):
         loss = loss_function(recon_batch, data, qy)
         loss.backward()
         test_loss += loss.item()
-    return test_loss / len(dataloader.dataset)
+    return test_loss / len(dataloader)
 
 def run(n_epoch):
-    train_loader = DataLoader(SaeDataSet(is_train=True), batch_size=100, shuffle=True)
-    test_loader = DataLoader(SaeDataSet(is_train=False), batch_size=500, shuffle=True)
+    train_set = SaeDataSet(is_train=True)
+    test_set = SaeDataSet(is_train=False)
+    assert len(train_set) % TRAIN_BZ == 0
+    assert len(test_set) % TEST_BZ == 0
+    train_loader = DataLoader(train_set, batch_size=TRAIN_BZ, shuffle=True)
+    test_loader = DataLoader(test_set, batch_size=TEST_BZ, shuffle=True)
     vae = VAE_gumbel().to(device)
     optimizer = Adam(vae.parameters(), lr=1e-3)
     best_loss = float('inf')
