@@ -49,10 +49,10 @@ def test(dataloader, vae, temp=0):
 
 def lr_scedule(e):
     if e < 100:
-        lr = 1e-3
+        decay = 1
     else:
-        lr = 1e-4
-    return lr
+        decay = 0.1
+    return decay
 
 
 def run(n_epoch):
