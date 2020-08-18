@@ -1,15 +1,16 @@
 from puzzle.dataset import SaeDataSet
-from puzzle.model import VAE_gumbel, device
+from puzzle.sae import SAE, device
 import numpy as np
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import torch
+from puzzle.train import TEST_BZ
 
 
 def run():
     view_set = SaeDataSet(is_train=False)
-    view_loader = DataLoader(view_set, batch_size=1, shuffle=True)
-    vae = VAE_gumbel().to(device)
+    view_loader = DataLoader(view_set, batch_size=TEST_BZ, shuffle=True)
+    vae = SAE().to(device)
     vae.load_state_dict(torch.load("puzzle/model/0.pth", map_location='cpu'))
     vae.eval()
 
@@ -18,19 +19,24 @@ def run():
         for _, ax in np.ndenumerate(axs):
             ax.axis('off')
         plt.gca()
+
         for _, data in enumerate(view_loader):
             data = data.to(device)
-            recon_batch, _, sample = vae(data, 0)
+            recon_batch, q_y, sample = vae(data, 0)
+            for i in range(data.size()[0]):
+                d = data[i].squeeze().cpu().numpy()
+                r = recon_batch[i].squeeze().cpu().numpy()
+                axs[0,0].imshow(d, cmap='gray')
+                axs[0,1].imshow(r, cmap='gray')
+                diff = d - r
+                axs[1,0].imshow(diff, cmap='gray')
+                s = sample[i].squeeze().cpu().numpy()
+                q = q_y[i].squeeze().cpu().numpy()
 
-            data = data.squeeze().cpu().numpy()
-            recon_batch = recon_batch.squeeze().cpu().numpy()
-            axs[0,0].imshow(data, cmap='gray')
-            axs[0,1].imshow(recon_batch, cmap='gray')
-            diff = data - recon_batch
-            axs[1,0].imshow(diff, cmap='gray')
-            sample = sample.squeeze().cpu().numpy()
-            axs[1,1].imshow(sample, cmap='gray')
-            plt.pause(0.2)
+                ones = np.ones(shape=s.shape)
+                axs[1,1].imshow(np.concatenate([s, ones, s - q, ones, q], axis=1), cmap='gray')
+                plt.pause(0.0001)
+
 
 
 

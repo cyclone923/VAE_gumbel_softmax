@@ -1,5 +1,5 @@
 from puzzle.dataset import SaeDataSet
-from puzzle.model import VAE_gumbel, device, CATEGORICAL_DIM
+from puzzle.sae import SAE, device, CATEGORICAL_DIM
 import torch
 from torch.utils.data import DataLoader
 from torch.nn import functional as F
@@ -64,7 +64,7 @@ def run(n_epoch):
     assert len(test_set) % TEST_BZ == 0
     train_loader = DataLoader(train_set, batch_size=TRAIN_BZ, shuffle=True)
     test_loader = DataLoader(test_set, batch_size=TEST_BZ, shuffle=True)
-    vae = VAE_gumbel().to(device)
+    vae = SAE().to(device)
     optimizer = Adam(vae.parameters(), lr=1e-3)
     scheculer = LambdaLR(optimizer, lr_scedule)
     best_loss = float('inf')
