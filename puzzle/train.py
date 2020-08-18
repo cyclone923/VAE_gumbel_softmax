@@ -74,7 +74,7 @@ def run(n_epoch):
         print('====> Epoch: {} Average test loss: {:.4f}'.format(e, test_loss))
         if test_loss < best_loss:
             print("Save Model")
-            torch.save(vae.state_dict(), "puzzle/model/0.pth")
+            torch.save(vae.state_dict(), "puzzle/model/{}.pth".format(VAE_NAME))
             best_loss = test_loss
         scheculer.step()
 

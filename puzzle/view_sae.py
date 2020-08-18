@@ -12,7 +12,7 @@ def run():
     view_set = SaeDataSet(is_train=False)
     view_loader = DataLoader(view_set, batch_size=TEST_BZ, shuffle=True)
     vae = eval(VAE_NAME)().to(device)
-    vae.load_state_dict(torch.load("puzzle/model/0.pth", map_location='cpu'))
+    vae.load_state_dict(torch.load("puzzle/model/{}.pth".format(VAE_NAME), map_location='cpu'))
     vae.eval()
 
     with torch.no_grad():
