@@ -6,11 +6,12 @@ import matplotlib.pyplot as plt
 import torch
 from puzzle.train import TEST_BZ
 
+VAE_NAME = "SAE"
 
 def run():
     view_set = SaeDataSet(is_train=False)
     view_loader = DataLoader(view_set, batch_size=TEST_BZ, shuffle=True)
-    vae = SAE().to(device)
+    vae = eval(VAE_NAME)().to(device)
     vae.load_state_dict(torch.load("puzzle/model/0.pth", map_location='cpu'))
     vae.eval()
 

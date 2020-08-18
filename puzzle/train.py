@@ -13,14 +13,11 @@ ANNEAL_RATE = 0.03
 TRAIN_BZ = 100
 TEST_BZ = 720
 
+VAE_NAME = "SAE"
+
 # Reconstruction + KL divergence losses summed over all elements and batch
-def loss_function(recon_x, x, qy):
+def loss_function(recon_x, x):
     BCE = F.binary_cross_entropy(recon_x, x, reduction='none').sum(dim=(1,2,3)).mean()
-
-    # log_qy = torch.log(qy + 1e-20)
-    # g = torch.log(torch.Tensor([1.0 / CATEGORICAL_DIM])).to(device)
-    # KLD = torch.sum(qy * (log_qy - g), dim=(-2, -1)).mean() # maximize the kl-divergence
-
     return BCE
 
 def train(dataloader, vae, temp, optimizer):
@@ -64,7 +61,7 @@ def run(n_epoch):
     assert len(test_set) % TEST_BZ == 0
     train_loader = DataLoader(train_set, batch_size=TRAIN_BZ, shuffle=True)
     test_loader = DataLoader(test_set, batch_size=TEST_BZ, shuffle=True)
-    vae = SAE().to(device)
+    vae = eval(VAE_NAME).to(device)
     optimizer = Adam(vae.parameters(), lr=1e-3)
     scheculer = LambdaLR(optimizer, lr_scedule)
     best_loss = float('inf')
