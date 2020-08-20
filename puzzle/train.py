@@ -14,7 +14,7 @@ import os
 TEMP_BEGIN = 5
 TEMP_MIN = 0.7
 ANNEAL_RATE = 0.03
-TRAIN_BZ = 50
+TRAIN_BZ = 16
 TEST_BZ = 720
 
 fo_logic = True
