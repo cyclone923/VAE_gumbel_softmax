@@ -18,13 +18,15 @@ ANNEAL_RATE = 0.03
 TRAIN_BZ = 100
 TEST_BZ = 180
 
-fo_logic = False
+fo_logic = True
 
 if not fo_logic:
+    print("Training SAE")
     MODEL_NAME = "Sae"
     DATASET_NAME = "SaeDataSet"
     DATA = np.load(PUZZLE_FILE)
 else:
+    print("Training FOSAE")
     MODEL_NAME = "FoSae"
     DATASET_NAME = "FoSaeDataSet"
     PUZZLE_FILE_FO = "puzzle/puzzle_data/puzzles_fo.npy"
@@ -49,8 +51,8 @@ else:
 def loss_function(recon_x, x, criterion=nn.BCELoss(reduction='none')):
     sum_dim = [i for i in range(1, x.dim())]
     x_min, x_max, rec_x_min, rec_x_max = x.min().item(), x.max().item(), recon_x.min().detach().item(), recon_x.max().detach().item()
-    # print("{}-{}-{}-{}".format(x_min, x_max, rec_x_min, rec_x_max))
-    # print("{}-{}-{}-{}".format(x_min < 0, x_max > 1, rec_x_min < 0, rec_x_max > 1))
+    print("{}-{}-{}-{}".format(x_min, x_max, rec_x_min, rec_x_max))
+    print("{}-{}-{}-{}".format(x_min < 0, x_max > 1, rec_x_min < 0, rec_x_max > 1))
     BCE = criterion(recon_x, x).sum(dim=sum_dim).mean()
     return BCE
 
