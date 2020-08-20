@@ -1,18 +1,17 @@
 from puzzle.dataset import SaeDataSet
-from puzzle.sae import SAE, device
+from puzzle.sae import Sae, device
 import numpy as np
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import torch
 from puzzle.train import TEST_BZ
 
-VAE_NAME = "SAE"
 
 def run():
     view_set = SaeDataSet(is_train=False)
     view_loader = DataLoader(view_set, batch_size=TEST_BZ, shuffle=True)
-    vae = eval(VAE_NAME)().to(device)
-    vae.load_state_dict(torch.load("puzzle/model/{}.pth".format(VAE_NAME), map_location='cpu'))
+    vae = Sae().to(device)
+    vae.load_state_dict(torch.load("puzzle/model/{}.pth".format("Sae"), map_location='cpu'))
     vae.eval()
 
     with torch.no_grad():

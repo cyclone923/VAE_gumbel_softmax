@@ -7,10 +7,10 @@ from puzzle.generate_puzzle import BASE_SIZE
 LATENT_DIM = 36
 CATEGORICAL_DIM = 2
 
-class SAE(nn.Module):
+class Sae(nn.Module):
 
     def __init__(self):
-        super(SAE, self).__init__()
+        super(Sae, self).__init__()
 
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=16, kernel_size=3, stride=1, padding=(1,1))
         self.bn1 = nn.BatchNorm2d(num_features=16)
