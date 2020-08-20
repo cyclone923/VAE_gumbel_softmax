@@ -73,12 +73,12 @@ def train(dataloader, vae, temp, optimizer):
 def test(dataloader, vae, temp=0):
     vae.eval()
     test_loss = 0
-    with torch.no_grad():
-        for i, data in enumerate(dataloader):
-            data = data.to(device)
-            recon_batch, _, _ = vae(data, temp)
-            loss = loss_function(recon_batch, data)
-            test_loss += loss.item()
+    # with torch.no_grad():
+    for i, data in enumerate(dataloader):
+        data = data.to(device)
+        recon_batch, _, _ = vae(data, temp)
+        loss = loss_function(recon_batch, data)
+        test_loss += loss.item()
     return test_loss / len(dataloader)
 
 
