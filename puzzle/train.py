@@ -11,7 +11,7 @@ from torch.optim.lr_scheduler import LambdaLR
 import numpy as np
 import os
 
-TEMP_BEGIN = 7
+TEMP_BEGIN = 0.7
 TEMP_MIN = 0.3
 ANNEAL_RATE = 0.03
 TRAIN_BZ = 200
