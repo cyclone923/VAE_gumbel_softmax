@@ -1,6 +1,7 @@
-from puzzle.dataset import SaeDataSet, FoSaeDataSet
 from puzzle.sae import Sae
 from puzzle.fosae import FoSae
+from puzzle.dataset import get_train_and_test_dataset
+from puzzle.generate_puzzle import PUZZLE_FILE, BASE_SIZE
 from puzzle.gumble import device
 import torch
 from torch.utils.data import DataLoader
@@ -8,6 +9,7 @@ from torch.nn import functional as F
 from torch.optim import Adam
 from torch.optim.lr_scheduler import LambdaLR
 import numpy as np
+import os
 
 TEMP_BEGIN = 5
 TEMP_MIN = 0.7
@@ -20,9 +22,27 @@ fo_logic = True
 if not fo_logic:
     MODEL_NAME = "Sae"
     DATASET_NAME = "SaeDataSet"
+    DATA = np.load(PUZZLE_FILE)
 else:
     MODEL_NAME = "FoSae"
     DATASET_NAME = "FoSaeDataSet"
+    PUZZLE_FILE_FO = "puzzle/puzzle_data/puzzles_fo.npy"
+
+    if not os.path.isfile(PUZZLE_FILE_FO):
+        data_img = np.load(PUZZLE_FILE)
+        DATA = np.zeros(shape=(data_img.shape[0], 9, data_img.shape[2] * data_img.shape[3]), dtype=np.float32)
+        for k, x in enumerate(data_img):
+            if k % 1000 == 0:
+                print("Generating Puzzle Object Oriented DataSet From Puzzle Image ...... {}".format(k))
+            for i in range(3):
+                for j in range(3):
+                    img = np.zeros(shape=x[0].shape)
+                    img[i * BASE_SIZE:(i + 1) * BASE_SIZE, j * BASE_SIZE:(j + 1) * BASE_SIZE] = \
+                        x[0, i * BASE_SIZE:(i + 1) * BASE_SIZE, j * BASE_SIZE:(j + 1) * BASE_SIZE]
+                    DATA[k, i * 3 + j] = img.flatten()
+        np.save(PUZZLE_FILE_FO, DATA)
+    else:
+        DATA = np.load(PUZZLE_FILE_FO)
 
 # Reconstruction + KL divergence losses summed over all elements and batch
 def loss_function(recon_x, x):
@@ -57,8 +77,7 @@ def test(dataloader, vae, temp=0):
 
 
 def run(n_epoch):
-    train_set = eval(DATASET_NAME)(is_train=True)
-    test_set = eval(DATASET_NAME)(is_train=False)
+    train_set, test_set = get_train_and_test_dataset(DATA)
     print("Training Examples: {}, Testing Examples: {}".format(len(train_set), len(test_set)))
     assert len(train_set) % TRAIN_BZ == 0
     assert len(test_set) % TEST_BZ == 0
