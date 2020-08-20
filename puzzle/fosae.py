@@ -1,12 +1,12 @@
 import torch
 from torch import nn
-from puzzle.gumble import device, gumbel_softmax
+from puzzle.gumble import gumbel_softmax
 from puzzle.generate_puzzle import BASE_SIZE
 
 N = 9
-P = 4
-A = 2
-U = 3
+P = 9
+A = 1
+U = 9
 LAYER_SIZE = 1000
 N_OBJ_FEATURE = (BASE_SIZE*3)**2
 
@@ -53,10 +53,6 @@ class PredicateDecoder(nn.Module):
     def forward(self, input):
         h1 = self.dpt1(self.bn1(self.fc1(input.view(-1, 1, U*P*2))))
         return torch.sigmoid(self.fc2(h1)).view(-1, N, N_OBJ_FEATURE)
-
-
-
-
 
 
 class FoSae(nn.Module):

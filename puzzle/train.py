@@ -20,14 +20,12 @@ TEST_BZ = 720
 fo_logic = True
 
 if not fo_logic:
-    print("Training SAE")
+    print("Model is SAE")
     MODEL_NAME = "Sae"
-    DATASET_NAME = "SaeDataSet"
     DATA = np.load(PUZZLE_FILE)
 else:
-    print("Training FOSAE")
+    print("Model is FOSAE")
     MODEL_NAME = "FoSae"
-    DATASET_NAME = "FoSaeDataSet"
     PUZZLE_FILE_FO = "puzzle/puzzle_data/puzzles_fo.npy"
 
     if not os.path.isfile(PUZZLE_FILE_FO):
