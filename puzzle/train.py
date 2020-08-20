@@ -49,7 +49,7 @@ else:
 # Reconstruction + KL divergence losses summed over all elements and batch
 def loss_function(recon_x, x, criterion=nn.BCELoss(reduction='none')):
     sum_dim = [i for i in range(1, x.dim())]
-    x_min, x_max, rec_x_min, rec_x_max = x.min().item(), x.max().item(), recon_x.min().detach().item(), recon_x.max().detach().item()
+    # x_min, x_max, rec_x_min, rec_x_max = x.min().item(), x.max().item(), recon_x.min().detach().item(), recon_x.max().detach().item()
     # print("{}-{}-{}-{}".format(x_min, x_max, rec_x_min, rec_x_max))
     # print("{}-{}-{}-{}".format(x_min < 0, x_max > 1, rec_x_min < 0, rec_x_max > 1))
     BCE = criterion(recon_x, x).sum(dim=sum_dim).mean()
