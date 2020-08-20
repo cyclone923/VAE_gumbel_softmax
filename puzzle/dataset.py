@@ -1,6 +1,7 @@
 import numpy as np
-from puzzle.generate_puzzle import PUZZLE_FILE, BASE_SIZE
+from puzzle.generate_puzzle import PUZZLE_FILE
 from torch.utils.data import Dataset, DataLoader
+import torch
 import sys
 import os
 
@@ -21,8 +22,8 @@ class SimpleDataSet(Dataset):
 
 
 def get_train_and_test_dataset(data):
-    train_data = np.array(data[:TRAIN_EXAMPLES])
-    test_data = np.array(data[TRAIN_EXAMPLES:])
+    train_data = torch.tensor(data[:TRAIN_EXAMPLES])
+    test_data = torch.tensor(data[TRAIN_EXAMPLES:])
     train_set = SimpleDataSet(train_data)
     test_set = SimpleDataSet(test_data)
     return train_set, test_set
