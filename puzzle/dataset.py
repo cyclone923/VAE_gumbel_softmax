@@ -21,8 +21,10 @@ class SimpleDataSet(Dataset):
 
 
 def get_train_and_test_dataset(data):
-    train_set = SimpleDataSet(data[:TRAIN_EXAMPLES])
-    test_set = SimpleDataSet(data[TRAIN_EXAMPLES:])
+    train_data = np.array(data[:TRAIN_EXAMPLES])
+    test_data = np.array(data[TRAIN_EXAMPLES:])
+    train_set = SimpleDataSet(train_data)
+    test_set = SimpleDataSet(test_data)
     return train_set, test_set
 
 

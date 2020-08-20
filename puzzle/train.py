@@ -87,6 +87,7 @@ def run(n_epoch):
     print("Training Examples: {}, Testing Examples: {}".format(len(train_set), len(test_set)))
     assert len(train_set) % TRAIN_BZ == 0
     assert len(test_set) % TEST_BZ == 0
+
     train_loader = DataLoader(train_set, batch_size=TRAIN_BZ, shuffle=True)
     test_loader = DataLoader(test_set, batch_size=TEST_BZ, shuffle=True)
     vae = eval(MODEL_NAME)().to(device)
