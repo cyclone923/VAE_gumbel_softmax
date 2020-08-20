@@ -23,7 +23,7 @@ class SimpleDataSet(Dataset):
 
 def get_train_and_test_dataset(data):
     train_data = torch.tensor(data[:TRAIN_EXAMPLES])
-    test_data = torch.tensor(data[TRAIN_EXAMPLES:])
+    test_data = torch.tensor(data[TRAIN_EXAMPLES:TRAIN_EXAMPLES+10000])
     train_set = SimpleDataSet(train_data)
     test_set = SimpleDataSet(test_data)
     return train_set, test_set
