@@ -15,7 +15,7 @@ TEMP_BEGIN = 5
 TEMP_MIN = 0.7
 ANNEAL_RATE = 0.03
 TRAIN_BZ = 100
-TEST_BZ = 720
+TEST_BZ = 180
 
 fo_logic = True
 
