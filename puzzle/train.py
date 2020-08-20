@@ -11,10 +11,10 @@ from torch.optim.lr_scheduler import LambdaLR
 import numpy as np
 import os
 
-TEMP_BEGIN = 5
-TEMP_MIN = 0.7
+TEMP_BEGIN = 7
+TEMP_MIN = 0.3
 ANNEAL_RATE = 0.03
-TRAIN_BZ = 100
+TRAIN_BZ = 200
 TEST_BZ = 720
 
 fo_logic = True
@@ -78,6 +78,10 @@ def test(dataloader, vae, temp=0):
             test_loss += loss.item()
     return test_loss / len(dataloader)
 
+def load_model(vae):
+    vae.load_state_dict(torch.load("puzzle/model/{}.pth".format(MODEL_NAME)))
+    print("puzzle/model/{}.pth loaded".format(MODEL_NAME))
+
 
 def run(n_epoch):
     train_set, test_set = get_train_and_test_dataset(DATA)
@@ -87,8 +91,9 @@ def run(n_epoch):
     train_loader = DataLoader(train_set, batch_size=TRAIN_BZ, shuffle=True)
     test_loader = DataLoader(test_set, batch_size=TEST_BZ, shuffle=True)
     vae = eval(MODEL_NAME)().to(device)
+    load_model(vae)
     optimizer = Adam(vae.parameters(), lr=1e-3)
-    scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 100 else 0.1)
+    scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 10 else 0.1)
     best_loss = float('inf')
     for e in range(n_epoch):
         temp = np.maximum(TEMP_BEGIN * np.exp(-ANNEAL_RATE * e), TEMP_MIN)

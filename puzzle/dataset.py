@@ -26,6 +26,10 @@ def get_train_and_test_dataset(data):
     test_set = SimpleDataSet(data[TRAIN_EXAMPLES:])
     return train_set, test_set
 
+def get_view_dataset(data, n):
+    idx = np.random.choice(len(data), n, replace=False)
+    return SimpleDataSet(data[idx])
+
 
 
 if __name__ == "__main__":
