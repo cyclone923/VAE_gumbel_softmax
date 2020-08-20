@@ -4,6 +4,7 @@ from puzzle.dataset import get_train_and_test_dataset
 from puzzle.generate_puzzle import PUZZLE_FILE, BASE_SIZE
 from puzzle.gumble import device
 import torch
+import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.nn import functional as F
 from torch.optim import Adam
@@ -45,9 +46,9 @@ else:
         DATA = np.load(PUZZLE_FILE_FO)
 
 # Reconstruction + KL divergence losses summed over all elements and batch
-def loss_function(recon_x, x):
+def loss_function(recon_x, x, criterion=nn.BCELoss(reduction='none')):
     sum_dim = [i for i in range(1, x.dim())]
-    BCE = F.binary_cross_entropy(recon_x, x, reduction='none').sum(dim=sum_dim).mean()
+    BCE = criterion(recon_x, x).sum(dim=sum_dim).mean()
     return BCE
 
 def train(dataloader, vae, temp, optimizer):
