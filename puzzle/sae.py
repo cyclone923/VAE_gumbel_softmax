@@ -43,9 +43,5 @@ class Sae(nn.Module):
 
     def forward(self, x, temp):
         q_y = self.encode(x)
-        if temp != 0:
-            z_y = gumbel_softmax(q_y, temp)
-        else:
-            _, ind = torch.max(q_y, dim=-1)
-            z_y = torch.zeros(size=q_y.size()).to(device).scatter(dim=-1, index=ind.unsqueeze(-1), value=1)
+        z_y = gumbel_softmax(q_y, temp)
         return self.decode(z_y), F.softmax(q_y, dim=-1), z_y

@@ -6,7 +6,6 @@ from puzzle.gumble import device
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from torch.nn import functional as F
 from torch.optim import Adam
 from torch.optim.lr_scheduler import LambdaLR
 import numpy as np
@@ -73,12 +72,12 @@ def train(dataloader, vae, temp, optimizer):
 def test(dataloader, vae, temp=0):
     vae.eval()
     test_loss = 0
-    # with torch.no_grad():
-    for i, data in enumerate(dataloader):
-        data = data.to(device)
-        recon_batch, _, _ = vae(data, temp)
-        loss = loss_function(recon_batch, data)
-        test_loss += loss.item()
+    with torch.no_grad():
+        for i, data in enumerate(dataloader):
+            data = data.to(device)
+            recon_batch, _, _ = vae(data, temp)
+            loss = loss_function(recon_batch, data)
+            test_loss += loss.item()
     return test_loss / len(dataloader)
 
 
@@ -87,7 +86,6 @@ def run(n_epoch):
     print("Training Examples: {}, Testing Examples: {}".format(len(train_set), len(test_set)))
     assert len(train_set) % TRAIN_BZ == 0
     assert len(test_set) % TEST_BZ == 0
-
     train_loader = DataLoader(train_set, batch_size=TRAIN_BZ, shuffle=True)
     test_loader = DataLoader(test_set, batch_size=TEST_BZ, shuffle=True)
     vae = eval(MODEL_NAME)().to(device)

@@ -22,10 +22,8 @@ class SimpleDataSet(Dataset):
 
 
 def get_train_and_test_dataset(data):
-    train_data = torch.tensor(data[:TRAIN_EXAMPLES])
-    test_data = torch.tensor(data[TRAIN_EXAMPLES:TRAIN_EXAMPLES+18000])
-    train_set = SimpleDataSet(train_data)
-    test_set = SimpleDataSet(test_data)
+    train_set = SimpleDataSet(data[:TRAIN_EXAMPLES])
+    test_set = SimpleDataSet(data[TRAIN_EXAMPLES:])
     return train_set, test_set
 
 
