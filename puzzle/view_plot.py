@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from puzzle.train import fo_logic
 
+spc = True
 
 if not fo_logic:
     data = np.load("puzzle/puzzle_data/puzzles_data.npy").squeeze()
@@ -23,21 +24,24 @@ if not fo_logic:
         plt.pause(0.1)
 
 else:
-    data = np.load("puzzle/puzzle_data/puzzles_data_fo.npy")
-    rec_batch = np.load("puzzle/puzzle_data/puzzles_rec_fo.npy")
-    args = np.load("puzzle/puzzle_data/puzzles_args_fo.npy")
-    preds = np.load("puzzle/puzzle_data/puzzles_preds_fo.npy")
+    data = np.load("puzzle/puzzle_data/puzzles_data_fo{}.npy".format("_spc" if spc else ""))
+    rec_batch = np.load("puzzle/puzzle_data/puzzles_rec_fo{}.npy".format("_spc" if spc else ""))
+    args = np.load("puzzle/puzzle_data/puzzles_args_fo{}.npy".format("_spc" if spc else ""))
+    preds = np.load("puzzle/puzzle_data/puzzles_preds_fo{}.npy".format("_spc" if spc else ""))
     fig, axs = plt.subplots(5, 9)
     for _, ax in np.ndenumerate(axs):
         ax.axis('off')
     plt.gca()
 
-    for ds, rs, ars, ps in zip(data, rec_batch, args, preds):
-        for i, (d, r, a, p) in enumerate(zip(ds, rs, ars, ps)):
-            axs[0,i].imshow(d, cmap='gray')
-            axs[1,i].imshow(d-r, cmap='gray')
-            axs[2,i].imshow(r, cmap='gray')
-            axs[3,i].imshow(a, cmap='gray')
-            axs[4,i].imshow(p, cmap='gray')
-        plt.pause(1)
+    while True:
+        for ds, rs, ars, ps in zip(data, rec_batch, args, preds):
+            for i, (d, r, a, p) in enumerate(zip(ds, rs, ars, ps)):
+                axs[0,i].imshow(d, cmap='gray')
+                axs[1,i].imshow(d-r, cmap='gray')
+                axs[2,i].imshow(r, cmap='gray')
+                axs[3,i].imshow(a, cmap='gray')
+                axs[4,i].imshow(p, cmap='gray')
+            plt.pause(0.1)
+
+
 

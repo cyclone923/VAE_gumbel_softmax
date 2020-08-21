@@ -7,6 +7,7 @@ import itertools
 import matplotlib.pyplot as plt
 
 PUZZLE_FILE = "puzzle/puzzle_data/puzzles.npy"
+PUZZLE_FILE_SPC = "puzzle/puzzle_data/puzzles_spc.npy"
 BASE_SIZE = 14
 
 np.random.seed(0)
@@ -77,10 +78,79 @@ def generate_puzzles(base):
     np.random.shuffle(imgs)
     np.save(PUZZLE_FILE, imgs)
 
+def generate_puzzles_specific(base, ps):
+    imgs = []
+    for n, p in enumerate(ps):
+        puzzle = np.zeros(shape=(1, BASE_SIZE*3, BASE_SIZE*3), dtype=np.float32)
+        for i, base_row in enumerate(p):
+            s_i = i * BASE_SIZE
+            e_i = i * BASE_SIZE + BASE_SIZE
+            for j, base_ind in enumerate(base_row):
+                s_j = j*BASE_SIZE
+                e_j = j*BASE_SIZE + BASE_SIZE
+                puzzle[:, s_i:e_i, s_j:e_j] = base[base_ind]
+        imgs.append(puzzle)
+    imgs = np.stack(imgs)
+    print(imgs.shape)
+    np.random.shuffle(imgs)
+
+    data_img = imgs
+    data = np.zeros(shape=(data_img.shape[0], 9, data_img.shape[2] * data_img.shape[3]), dtype=np.float32)
+    for k, x in enumerate(data_img):
+        print("Generating Puzzle Object Oriented DataSet From Puzzle Image ...... {}".format(k))
+        for i in range(3):
+            for j in range(3):
+                img = np.zeros(shape=x[0].shape)
+                img[i * BASE_SIZE:(i + 1) * BASE_SIZE, j * BASE_SIZE:(j + 1) * BASE_SIZE] = \
+                    x[0, i * BASE_SIZE:(i + 1) * BASE_SIZE, j * BASE_SIZE:(j + 1) * BASE_SIZE]
+                data[k, i * 3 + j] = img.flatten()
+    np.save(PUZZLE_FILE_SPC, data)
+
+
+
+
+
+
 
 if __name__ == "__main__":
     base = generate_bases()
-    generate_puzzles(base)
+    # generate_puzzles(base)
+    ps = np.array(
+        [
+            [
+                [1,7,3],
+                [2,0,6],
+                [5,4,8]
+            ],
+            [
+                [1,7,3],
+                [2,0,8],
+                [5,4,6]
+            ],
+            [
+                [1,7,3],
+                [2,6,0],
+                [5,4,8]
+            ],
+            [
+                [1,7,3],
+                [2,6,8],
+                [5,4,0]
+            ],
+            [
+                [1,7,3],
+                [2,8,0],
+                [5,4,6]
+            ],
+            [
+                [1,7,3],
+                [2,8,6],
+                [5,4,0]
+            ]
+        ]
+    )
+    generate_puzzles_specific(base, ps)
+
 
 
 

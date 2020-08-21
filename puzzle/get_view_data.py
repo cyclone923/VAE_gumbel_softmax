@@ -2,25 +2,30 @@ from puzzle.sae import Sae
 from puzzle.fosae import FoSae
 from puzzle.dataset import get_view_dataset
 from puzzle.gumble import device
-from puzzle.generate_puzzle import BASE_SIZE
+from puzzle.generate_puzzle import BASE_SIZE, PUZZLE_FILE_SPC
 import numpy as np
 from torch.utils.data import DataLoader
 import torch
 from puzzle.train import fo_logic, load_data, MODEL_NAME
 
-N_EXAMPLE = 200
+N_EXAMPLES = 200
 
-def init():
-    data = load_data(fo_logic)
-    view_set = get_view_dataset(data, N_EXAMPLE)
-    view_loader = DataLoader(view_set, batch_size=N_EXAMPLE, shuffle=True)
+def init(spc=False):
+    if not spc:
+        data = load_data(fo_logic)
+    else:
+        data = np.load(PUZZLE_FILE_SPC)
+
+    view_set = get_view_dataset(data, min(N_EXAMPLES, data.shape[0]))
+    print("View examples {}".format(len(view_set)))
+    view_loader = DataLoader(view_set, batch_size=len(view_set), shuffle=True)
     vae = eval(MODEL_NAME)().to(device)
     vae.load_state_dict(torch.load("puzzle/model/{}.pth".format(MODEL_NAME), map_location='cpu'))
     vae.eval()
 
     return vae, view_loader
 
-def run(vae, view_loader):
+def run(vae, view_loader, spc=False):
 
     with torch.no_grad():
         if not fo_logic:
@@ -52,10 +57,10 @@ def run(vae, view_loader):
             args = args.view(-1, 9 , BASE_SIZE*3, BASE_SIZE*3).detach().cpu().numpy()
             preds = preds.detach().cpu().numpy()
             print(data.shape, recon_batch.shape, args.shape, preds.shape)
-            np.save("puzzle/puzzle_data/puzzles_data_fo.npy", data)
-            np.save("puzzle/puzzle_data/puzzles_rec_fo.npy", recon_batch)
-            np.save("puzzle/puzzle_data/puzzles_args_fo.npy", args)
-            np.save("puzzle/puzzle_data/puzzles_preds_fo.npy", preds)
+            np.save("puzzle/puzzle_data/puzzles_data_fo{}.npy".format("_spc" if spc else ""), data)
+            np.save("puzzle/puzzle_data/puzzles_rec_fo{}.npy".format("_spc" if spc else ""), recon_batch)
+            np.save("puzzle/puzzle_data/puzzles_args_fo{}.npy".format("_spc" if spc else ""), args)
+            np.save("puzzle/puzzle_data/puzzles_preds_fo{}.npy".format("_spc" if spc else ""), preds)
 
 
 
@@ -71,5 +76,7 @@ def run(vae, view_loader):
 
 
 if __name__ == "__main__":
-    vae, view_loader = init()
-    run(vae, view_loader)
+    # vae, view_loader = init()
+    # run(vae, view_loader)
+    vae, view_loader = init(spc=True)
+    run(vae, view_loader, spc=True)
