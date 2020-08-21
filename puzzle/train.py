@@ -1,7 +1,6 @@
 from puzzle.sae import Sae
 from puzzle.fosae import FoSae
-from puzzle.dataset import get_train_and_test_dataset
-from puzzle.generate_puzzle import PUZZLE_FILE, BASE_SIZE
+from puzzle.dataset import get_train_and_test_dataset, load_data
 from puzzle.gumble import device
 import torch
 import torch.nn as nn
@@ -11,8 +10,8 @@ from torch.optim.lr_scheduler import LambdaLR
 import numpy as np
 import os
 
-TEMP_BEGIN = 0.7
-TEMP_MIN = 0.3
+TEMP_BEGIN = 5
+TEMP_MIN = 2
 ANNEAL_RATE = 0.03
 TRAIN_BZ = 200
 TEST_BZ = 720
@@ -22,27 +21,10 @@ fo_logic = True
 if not fo_logic:
     print("Model is SAE")
     MODEL_NAME = "Sae"
-    DATA = np.load(PUZZLE_FILE)
 else:
     print("Model is FOSAE")
     MODEL_NAME = "FoSae"
-    PUZZLE_FILE_FO = "puzzle/puzzle_data/puzzles_fo.npy"
 
-    if not os.path.isfile(PUZZLE_FILE_FO):
-        data_img = np.load(PUZZLE_FILE)
-        DATA = np.zeros(shape=(data_img.shape[0], 9, data_img.shape[2] * data_img.shape[3]), dtype=np.float32)
-        for k, x in enumerate(data_img):
-            if k % 1000 == 0:
-                print("Generating Puzzle Object Oriented DataSet From Puzzle Image ...... {}".format(k))
-            for i in range(3):
-                for j in range(3):
-                    img = np.zeros(shape=x[0].shape)
-                    img[i * BASE_SIZE:(i + 1) * BASE_SIZE, j * BASE_SIZE:(j + 1) * BASE_SIZE] = \
-                        x[0, i * BASE_SIZE:(i + 1) * BASE_SIZE, j * BASE_SIZE:(j + 1) * BASE_SIZE]
-                    DATA[k, i * 3 + j] = img.flatten()
-        np.save(PUZZLE_FILE_FO, DATA)
-    else:
-        DATA = np.load(PUZZLE_FILE_FO)
 
 # Reconstruction + KL divergence losses summed over all elements and batch
 def loss_function(recon_x, x, criterion=nn.BCELoss(reduction='none')):
@@ -83,8 +65,9 @@ def load_model(vae):
     print("puzzle/model/{}.pth loaded".format(MODEL_NAME))
 
 
+
 def run(n_epoch):
-    train_set, test_set = get_train_and_test_dataset(DATA)
+    train_set, test_set = get_train_and_test_dataset(load_data(fo_logic))
     print("Training Examples: {}, Testing Examples: {}".format(len(train_set), len(test_set)))
     assert len(train_set) % TRAIN_BZ == 0
     assert len(test_set) % TEST_BZ == 0
