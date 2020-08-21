@@ -8,10 +8,9 @@ from torch.utils.data import DataLoader
 from torch.optim import Adam
 from torch.optim.lr_scheduler import LambdaLR
 import numpy as np
-import os
 
-TEMP_BEGIN = 5
-TEMP_MIN = 2
+TEMP_BEGIN = 60
+TEMP_MIN = 60
 ANNEAL_RATE = 0.03
 TRAIN_BZ = 200
 TEST_BZ = 720
@@ -74,7 +73,7 @@ def run(n_epoch):
     train_loader = DataLoader(train_set, batch_size=TRAIN_BZ, shuffle=True)
     test_loader = DataLoader(test_set, batch_size=TEST_BZ, shuffle=True)
     vae = eval(MODEL_NAME)().to(device)
-    load_model(vae)
+    # load_model(vae)
     optimizer = Adam(vae.parameters(), lr=1e-3)
     scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 10 else 0.1)
     best_loss = float('inf')
