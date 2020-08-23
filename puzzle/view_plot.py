@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from puzzle.train import fo_logic
 
 spc = False
+fo_logic = True
 
 if not fo_logic:
     data = np.load("puzzle/puzzle_data/puzzles_data.npy").squeeze()
@@ -19,7 +19,8 @@ if not fo_logic:
         axs[0,0].imshow(d, cmap='gray')
         axs[0,1].imshow(r, cmap='gray')
         axs[1,0].imshow(d-r, cmap='gray')
-        all = np.concatenate([q, np.ones(shape=q.shape), s], axis=1)
+        margin = np.ones(shape=q.shape)
+        all = np.concatenate([q, margin, margin, margin, s], axis=1)
         axs[1,1].imshow(all, cmap='gray')
         plt.pause(0.1)
 
@@ -32,7 +33,7 @@ else:
     rec_batch_soft = np.load("puzzle/puzzle_data/puzzles_rec_soft_fo{}.npy".format("_spc" if spc else ""))
     args_soft = np.load("puzzle/puzzle_data/puzzles_args_soft_fo{}.npy".format("_spc" if spc else ""))
     preds_soft = np.load("puzzle/puzzle_data/puzzles_preds_soft_fo{}.npy".format("_spc" if spc else ""))
-    fig, axs = plt.subplots(9, 9, figsize=(16,16))
+    fig, axs = plt.subplots(5, 9, figsize=(6,6))
     for _, ax in np.ndenumerate(axs):
         ax.axis('off')
     plt.gca()
@@ -45,10 +46,10 @@ else:
                 axs[2,i].imshow(r, cmap='gray')
                 axs[3,i].imshow(ar, cmap='gray')
                 axs[4,i].imshow(p, cmap='gray')
-                axs[5,i].imshow(d-rt, cmap='gray')
-                axs[6,i].imshow(rt, cmap='gray')
-                axs[7,i].imshow(art, cmap='gray')
-                axs[8,i].imshow(pt, cmap='gray')
+                # axs[5,i].imshow(d-rt, cmap='gray')
+                # axs[6,i].imshow(rt, cmap='gray')
+                # axs[7,i].imshow(art, cmap='gray')
+                # axs[8,i].imshow(pt, cmap='gray')
             plt.pause(0.1)
 
 
