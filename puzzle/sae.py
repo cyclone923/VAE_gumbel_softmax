@@ -1,11 +1,11 @@
 import torch
 from torch import nn
-from torch.nn import functional as F
-from puzzle.gumble import device, gumbel_softmax
+from puzzle.gumble import gumbel_softmax
 from puzzle.generate_puzzle import BASE_SIZE
 
 LATENT_DIM = 36
-CATEGORICAL_DIM = 2
+CATEGORICAL_DIM = 1
+N_ACTION = 128
 
 class Sae(nn.Module):
 
@@ -28,7 +28,6 @@ class Sae(nn.Module):
         self.dpt5 = nn.Dropout(0.4)
         self.fc6 = nn.Linear(in_features=1000, out_features=(BASE_SIZE*3) ** 2)
 
-
     def encode(self, x):
         h1 = self.dpt1(self.bn1(torch.tanh(self.conv1(x))))
         h2 = self.dpt2(self.bn2(torch.tanh(self.conv2(h1))))
@@ -44,4 +43,60 @@ class Sae(nn.Module):
     def forward(self, x, temp):
         q_y = self.encode(x)
         z_y = gumbel_softmax(q_y, temp)
-        return self.decode(z_y), F.softmax(q_y, dim=-1), z_y
+        return self.decode(z_y), z_y
+
+# Back-to-logits implementation
+class Aae(nn.Module):
+    def __init__(self):
+        super(Aae, self).__init__()
+        self.fc1 = nn.Linear(in_features=LATENT_DIM + LATENT_DIM, out_features=400)
+        self.bn1 = nn.BatchNorm1d(1)
+        self.dpt1 = nn.Dropout(0.4)
+        self.fc2 = nn.Linear(in_features=400 + LATENT_DIM, out_features=400)
+        self.bn2 = nn.BatchNorm1d(1)
+        self.dpt2 = nn.Dropout(0.4)
+        self.fc3 = nn.Linear(in_features=400 + LATENT_DIM, out_features=N_ACTION)
+        self.bn3 = nn.BatchNorm1d(1)
+
+        self.effect1_fc = nn.Linear(in_features=N_ACTION, out_features=400)
+        self.effect1_bn = nn.BatchNorm1d(1)
+        self.effect1_dpt = nn.Dropout(0.4)
+        self.effect2_fc = nn.Linear(in_features=400, out_features=LATENT_DIM)
+        self.effect2_bn = nn.BatchNorm1d(1)
+
+
+    def encode(self, s, z, temp):
+        s = torch.flatten(s, start_dim=1).unsqueeze(1)
+        z = torch.flatten(z, start_dim=1).unsqueeze(1)
+        h1 = self.dpt1(self.bn1(torch.relu(self.fc1(torch.cat([s, z], dim=2)))))
+        h2 = self.dpt2(self.bn2(torch.relu(self.fc2(torch.cat([s, h1], dim=2)))))
+        h3 = self.fc3(torch.cat([s, h2], dim=2))
+        return gumbel_softmax(h3.view(-1, 1, N_ACTION), temp)
+
+    def decode(self, s, a, temp):
+        h1 = self.effect1_dpt(self.effect1_bn(self.effect1_fc(a)))
+        h2 = self.effect2_bn(self.effect2_fc(h1))
+        h2 = h2.view(-1, LATENT_DIM, 1)
+        return gumbel_softmax(h2+s, temp)
+
+    def forward(self, s, z, temp):
+        a = self.encode(s, z, temp)
+        recon_z = self.decode(s, a, temp)
+        return recon_z
+
+
+class CubeSae(nn.Module):
+
+    def __init__(self):
+        super(CubeSae, self).__init__()
+        self.sae = Sae()
+        self.aae = Aae()
+
+    def forward(self, o1, o2, temp):
+        recon_o1, z1 = self.sae(o1, temp)
+        recon_o2, z2 = self.sae(o2, temp)
+        z_recon = self.aae(z1, z2, temp)
+        return recon_o1, recon_o2, z1, z2, z_recon
+
+
+
