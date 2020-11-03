@@ -5,7 +5,9 @@ import sys
 import matplotlib.pyplot as plt
 
 TRAIN_EXAMPLES = 20000
-TEST_EXAMPLES = 80000
+VALIDATION_EXAMPLES = 80000
+TEST_EXAMPLES = 200
+
 
 np.set_printoptions(precision=2, threshold=sys.maxsize, linewidth=sys.maxsize)
 np.random.seed(0)
@@ -47,12 +49,10 @@ class SimpleDataSet(Dataset):
 def get_train_and_test_dataset(data, successors):
     print("Loaded Data Size {}".format(data.shape))
     data_set = SimpleDataSet(data, successors)
-    return random_split(data_set, [TRAIN_EXAMPLES, TEST_EXAMPLES, len(data_set) - TRAIN_EXAMPLES - TEST_EXAMPLES])
-
-def get_view_dataset(data, n):
-    idx = np.random.choice(len(data), n, replace=False)
-    new_arr = np.array(data[idx])
-    return SimpleDataSet(new_arr)
+    return random_split(
+        data_set, [TRAIN_EXAMPLES, VALIDATION_EXAMPLES, TEST_EXAMPLES,
+        len(data_set) - TRAIN_EXAMPLES - VALIDATION_EXAMPLES - TEST_EXAMPLES]
+    )
 
 def load_data():
     return np.load(PUZZLE_FILE), np.load(SUCCESOR_FILE)

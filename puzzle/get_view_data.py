@@ -1,78 +1,49 @@
-from puzzle.sae import Sae
-from puzzle.fosae import FoSae
-from puzzle.dataset import get_view_dataset
+from puzzle.sae import CubeSae
+from puzzle.dataset import get_train_and_test_dataset
 from puzzle.gumble import device
-from puzzle.generate_puzzle import BASE_SIZE, PUZZLE_FILE_SPC
-import numpy as np
+from puzzle.train import MODEL_NAME
 from torch.utils.data import DataLoader
 import torch
-from puzzle.train import fo_logic, load_data, MODEL_NAME, TEMP_MIN, TEMP_BEGIN
+from puzzle.train import load_data, TEMP_MIN
+import matplotlib.pyplot as plt
 
 N_EXAMPLES = 200
 
-def init(spc=False):
-    if not spc:
-        data = load_data(fo_logic)
-    else:
-        data = np.load(PUZZLE_FILE_SPC)
+def init():
+    _, _, view_set, _ = get_train_and_test_dataset(*load_data())
 
-    view_set = get_view_dataset(data, min(N_EXAMPLES, data.shape[0]))
     print("View examples {}".format(len(view_set)))
-    view_loader = DataLoader(view_set, batch_size=len(view_set), shuffle=True)
-    vae = eval(MODEL_NAME)().to(device)
+    view_loader = DataLoader(view_set, batch_size=20, shuffle=True)
+    vae = CubeSae().to(device)
     vae.load_state_dict(torch.load("puzzle/model/{}.pth".format(MODEL_NAME), map_location='cpu'))
     vae.eval()
 
     return vae, view_loader
 
-def run(vae, view_loader, spc=False):
+def run(vae, view_loader):
 
     with torch.no_grad():
-        if not fo_logic:
-            data = view_loader.__iter__().__next__()
-            data = data.to(device)
-            recon_batch, q_y, sample = vae(data, 0)
+        plt.gca()
+        for i, (data, data_next) in enumerate(view_loader):
+            batch_o1 = data.to(device)
+            batch_o2 = data_next.to(device)
+            noise1 = torch.normal(mean=0, std=0.4, size=batch_o1.size()).to(device)
+            noise2 = torch.normal(mean=0, std=0.4, size=batch_o2.size()).to(device)
+            output = vae(batch_o1 + noise1, batch_o2 + noise2, 0)
+            for o1, o2, recon_o1, recon_o2, z1, z2, recon_z2 in zip(*([batch_o1, batch_o2] + [i for i in output])):
+                plt.imshow(o1.squeeze(), cmap="gray")
+                plt.pause(0.1)
+                plt.imshow(recon_o1.squeeze(), cmap="gray")
+                plt.pause(0.1)
+                plt.imshow(o2.squeeze(), cmap="gray")
+                plt.pause(0.1)
+                plt.imshow(recon_o2.squeeze(), cmap="gray")
+                plt.pause(0.1)
+                plt.imshow(z1, cmap="gray")
+                plt.pause(0.1)
+                plt.imshow(torch.cat([z2, recon_z2], dim=1), cmap="gray")
+                plt.pause(0.1)
 
-            data = data.detach().cpu().numpy()
-            recon_batch = recon_batch.detach().cpu().numpy()
-            q_y = q_y.detach().cpu().numpy()
-            sample = sample.detach().cpu().numpy()
-
-            print(data.shape, recon_batch.shape, q_y.shape, sample.shape)
-            np.save("puzzle/puzzle_data/puzzles_data.npy", data)
-            np.save("puzzle/puzzle_data/puzzles_rec.npy", recon_batch)
-            np.save("puzzle/puzzle_data/puzzles_qy.npy", q_y)
-            np.save("puzzle/puzzle_data/puzzles_sample.npy", sample)
-        else:
-            # fig, axs = plt.subplots(4, 9, figsize=(9, 9))
-            # for _, ax in np.ndenumerate(axs):
-            #     ax.axis('off')
-            #
-            # plt.gca()
-            data = view_loader.__iter__().__next__()
-            data = data.to(device)
-
-            data_np = data.view(-1, 9 , BASE_SIZE*3, BASE_SIZE*3).detach().cpu().numpy()
-
-            recon_batch, args, preds = vae(data, 0)
-            recon_batch = recon_batch.view(-1, 9, BASE_SIZE*3, BASE_SIZE*3).detach().cpu().numpy()
-            args = args.view(-1, 9 , BASE_SIZE*3, BASE_SIZE*3).detach().cpu().numpy()
-            preds = preds.detach().cpu().numpy()
-            print(data_np.shape, recon_batch.shape, args.shape, preds.shape)
-            np.save("puzzle/puzzle_data/puzzles_data_fo{}.npy".format("_spc" if spc else ""), data_np)
-            np.save("puzzle/puzzle_data/puzzles_rec_fo{}.npy".format("_spc" if spc else ""), recon_batch)
-            np.save("puzzle/puzzle_data/puzzles_args_fo{}.npy".format("_spc" if spc else ""), args)
-            np.save("puzzle/puzzle_data/puzzles_preds_fo{}.npy".format("_spc" if spc else ""), preds)
-
-            recon_batch_soft, args_soft, preds_soft = vae(data, TEMP_MIN)
-            recon_batch_soft = recon_batch_soft.view(-1, 9, BASE_SIZE*3, BASE_SIZE*3).detach().cpu().numpy()
-            args_soft = args_soft.view(-1, 9 , BASE_SIZE*3, BASE_SIZE*3).detach().cpu().numpy()
-            preds_soft = preds_soft.detach().cpu().numpy()
-            print(data_np.shape, recon_batch_soft.shape, args_soft.shape, preds_soft.shape)
-            np.save("puzzle/puzzle_data/puzzles_data_soft_fo{}.npy".format("_spc" if spc else ""), data_np)
-            np.save("puzzle/puzzle_data/puzzles_rec_soft_fo{}.npy".format("_spc" if spc else ""), recon_batch_soft)
-            np.save("puzzle/puzzle_data/puzzles_args_soft_fo{}.npy".format("_spc" if spc else ""), args_soft)
-            np.save("puzzle/puzzle_data/puzzles_preds_soft_fo{}.npy".format("_spc" if spc else ""), preds_soft)
 
 
 
@@ -90,5 +61,3 @@ def run(vae, view_loader, spc=False):
 if __name__ == "__main__":
     vae, view_loader = init()
     run(vae, view_loader)
-    vae, view_loader = init(spc=True)
-    run(vae, view_loader, spc=True)

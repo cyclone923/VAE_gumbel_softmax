@@ -9,11 +9,11 @@ from torch.optim.lr_scheduler import LambdaLR
 import numpy as np
 
 TEMP_BEGIN = 5
-TEMP_MIN = 0.3
-ANNEAL_RATE = 0.03
+TEMP_MIN = 0.05
+ANNEAL_RATE = 0.02
 TRAIN_BZ = 200
 TEST_BZ = 800
-ALPHA = 0.5
+ALPHA = 0.7
 
 MODEL_NAME = "CubeSae"
 
@@ -93,7 +93,7 @@ def load_model(vae):
 
 
 def run(n_epoch):
-    train_set, test_set, _ = get_train_and_test_dataset(*load_data())
+    train_set, test_set, _, _ = get_train_and_test_dataset(*load_data())
     print("Training Examples: {}, Testing Examples: {}".format(len(train_set), len(test_set)))
     assert len(train_set) % TRAIN_BZ == 0
     assert len(test_set) % TEST_BZ == 0
@@ -106,7 +106,7 @@ def run(n_epoch):
     best_loss = float('inf')
     for e in range(n_epoch):
         temp = np.maximum(TEMP_BEGIN * np.exp(-ANNEAL_RATE * e), TEMP_MIN)
-        print("Epoch: {}, Temperature: {}, Lr: {}".format(e, temp, scheculer.get_lr()))
+        print("Epoch: {}, Temperature: {}, Lr: {}".format(e, temp, scheculer.get_last_lr()))
         train_loss = train(train_loader, vae, temp, optimizer)
         print('====> Epoch: {} Average train loss: {:.4f}'.format(e, train_loss))
         test_loss = test(test_loader, vae)
