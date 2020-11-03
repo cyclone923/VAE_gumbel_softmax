@@ -11,7 +11,7 @@ import numpy as np
 TEMP_BEGIN = 5
 TEMP_MIN = 0.05
 ANNEAL_RATE = 0.02
-TRAIN_BZ = 200
+TRAIN_BZ = 800
 TEST_BZ = 800
 ALPHA = 0.7
 

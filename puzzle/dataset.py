@@ -4,7 +4,7 @@ from torch.utils.data import Dataset, DataLoader, random_split
 import sys
 import matplotlib.pyplot as plt
 
-TRAIN_EXAMPLES = 20000
+TRAIN_EXAMPLES = 80000
 VALIDATION_EXAMPLES = 80000
 TEST_EXAMPLES = 200
 
