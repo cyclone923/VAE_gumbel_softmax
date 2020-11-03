@@ -29,18 +29,21 @@ def latent_spasity(z):
 
 def total_loss(output, o1, o2):
     recon_o1, recon_o2, z1, z2, recon_z2 = output
-    loss = 0
-    loss += rec_loss_function(recon_o1, o1, nn.BCELoss(reduction='none'))
-    loss += rec_loss_function(recon_o2, o2, nn.BCELoss(reduction='none'))
-    loss += rec_loss_function(recon_z2, z2, nn.MSELoss(reduction='none'))
-    loss += latent_spasity(z1)
-    loss += latent_spasity(z2)
-    return loss
+    image_loss = 0
+    latent_loss = 0
+    spasity = 0
+    image_loss += rec_loss_function(recon_o1, o1, nn.BCELoss(reduction='none'))
+    image_loss += rec_loss_function(recon_o2, o2, nn.BCELoss(reduction='none'))
+    latent_loss += rec_loss_function(recon_z2, z2, nn.MSELoss(reduction='none'))
+    spasity += latent_spasity(z1)
+    spasity += latent_spasity(z2)
+    return image_loss, latent_loss, spasity
 
 
 def train(dataloader, vae, temp, optimizer):
     vae.train()
     train_loss = 0
+    ep_image_loss, ep_latent_loss, ep_spasity = 0, 0, 0
     for i, (data, data_next) in enumerate(dataloader):
         o1 = data.to(device)
         o2 = data_next.to(device)
@@ -48,15 +51,24 @@ def train(dataloader, vae, temp, optimizer):
         noise1 = torch.normal(mean=0, std=0.4, size=o1.size()).to(device)
         noise2 = torch.normal(mean=0, std=0.4, size=o2.size()).to(device)
         output = vae(o1+noise1, o2+noise2, temp)
-        loss = total_loss(output, o1, o2)
+        image_loss, latent_loss, spasity = total_loss(output, o1, o2)
+        ep_image_loss += image_loss.item()
+        ep_latent_loss += latent_loss.item()
+        ep_spasity += spasity.item()
+        loss = image_loss + latent_loss + spasity
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
+
+    print("TRAINING LOSS REC_IMG: {}, REC_LATENT: {}, SPASITY_LATENT: {}".format(
+        ep_image_loss/len(dataloader), ep_latent_loss/len(dataloader), ep_spasity/len(dataloader))
+    )
     return train_loss / len(dataloader)
 
 def test(dataloader, vae, temp=0):
     vae.eval()
     test_loss = 0
+    ep_image_loss, ep_latent_loss, ep_spasity = 0, 0, 0
     with torch.no_grad():
         for i, (data, data_next) in enumerate(dataloader):
             o1 = data.to(device)
@@ -64,8 +76,15 @@ def test(dataloader, vae, temp=0):
             noise1 = torch.normal(mean=0, std=0.4, size=o1.size()).to(device)
             noise2 = torch.normal(mean=0, std=0.4, size=o2.size()).to(device)
             output = vae(o1 + noise1, o2 + noise2, temp)
-            loss = total_loss(output, o1, o2)
+            image_loss, latent_loss, spasity = total_loss(output, o1, o2)
+            ep_image_loss += image_loss.item()
+            ep_latent_loss += latent_loss.item()
+            ep_spasity += spasity.item()
+            loss = image_loss + latent_loss + spasity
             test_loss += loss.item()
+    print("TESTING LOSS REC_IMG: {}, REC_LATENT: {}, SPASITY_LATENT: {}".format(
+        ep_image_loss/len(dataloader), ep_latent_loss/len(dataloader), ep_spasity/len(dataloader))
+    )
     return test_loss / len(dataloader)
 
 def load_model(vae):
