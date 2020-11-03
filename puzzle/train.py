@@ -60,7 +60,7 @@ def train(dataloader, vae, temp, optimizer):
         train_loss += loss.item()
         optimizer.step()
 
-    print("TRAINING LOSS REC_IMG: {}, REC_LATENT: {}, SPASITY_LATENT: {}".format(
+    print("TRAINING LOSS REC_IMG: {:.3f}, REC_LATENT: {:.3f}, SPASITY_LATENT: {:.3f}".format(
         ep_image_loss/len(dataloader), ep_latent_loss/len(dataloader), ep_spasity/len(dataloader))
     )
     return train_loss / len(dataloader)
@@ -82,7 +82,7 @@ def test(dataloader, vae, temp=0):
             ep_spasity += spasity.item()
             loss = image_loss + latent_loss + spasity
             test_loss += loss.item()
-    print("TESTING LOSS REC_IMG: {}, REC_LATENT: {}, SPASITY_LATENT: {}".format(
+    print("TESTING LOSS REC_IMG: {:.3f}, REC_LATENT: {:.3f}, SPASITY_LATENT: {:.3f}".format(
         ep_image_loss/len(dataloader), ep_latent_loss/len(dataloader), ep_spasity/len(dataloader))
     )
     return test_loss / len(dataloader)
