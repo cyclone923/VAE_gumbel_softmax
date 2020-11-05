@@ -105,7 +105,7 @@ def run(n_epoch):
     vae = CubeSae().to(device)
     # load_model(vae)
     optimizer = Adam(vae.parameters(), lr=1e-3)
-    scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 10 else 0.1)
+    scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 300 else 0.1)
     best_loss = float('inf')
     for e in range(n_epoch):
         temp1 = np.maximum(TEMP_BEGIN_SAE * np.exp(-ANNEAL_RATE * e), TEMP_MIN_SAE)
