@@ -8,12 +8,14 @@ from torch.optim import Adam
 from torch.optim.lr_scheduler import LambdaLR
 import numpy as np
 
-TEMP_BEGIN = 5
-TEMP_MIN = 0.2
-ANNEAL_RATE = 0.02
+TEMP_BEGIN_SAE = 5
+TEMP_MIN_SAE = 0.7
+TEMP_BEGIN_AAE = 5
+TEMP_MIN_AAE = 0.1
+ANNEAL_RATE = 0.03
 TRAIN_BZ = 800
 TEST_BZ = 800
-ALPHA = 0.5
+ALPHA = 0.7
 
 MODEL_NAME = "CubeSae"
 
@@ -24,10 +26,10 @@ def rec_loss_function(recon_x, x, criterion):
     # sparsity = latent_z.sum(dim=[i for i in range(1, latent_z.dim())]).mean()
     return BCE
 
-def latent_spasity(z):
-    return z.sum(dim=[i for i in range(1, z.dim())]).mean()*ALPHA
+def latent_spasity(z, alpha):
+    return z.sum(dim=[i for i in range(1, z.dim())]).mean()*alpha
 
-def total_loss(output, o1, o2):
+def total_loss(output, o1, o2, alpha):
     recon_o1, recon_o2, z1, z2, recon_z2 = output
     image_loss = 0
     latent_loss = 0
@@ -35,12 +37,12 @@ def total_loss(output, o1, o2):
     image_loss += rec_loss_function(recon_o1, o1, nn.BCELoss(reduction='none'))
     image_loss += rec_loss_function(recon_o2, o2, nn.BCELoss(reduction='none'))
     latent_loss += rec_loss_function(recon_z2, z2, nn.MSELoss(reduction='none'))
-    spasity += latent_spasity(z1)
-    spasity += latent_spasity(z2)
+    spasity += latent_spasity(z1, alpha)
+    spasity += latent_spasity(z2, alpha)
     return image_loss, latent_loss, spasity
 
 
-def train(dataloader, vae, temp, optimizer):
+def train(dataloader, vae, alpha, optimizer, temp):
     vae.train()
     train_loss = 0
     ep_image_loss, ep_latent_loss, ep_spasity = 0, 0, 0
@@ -51,7 +53,7 @@ def train(dataloader, vae, temp, optimizer):
         noise1 = torch.normal(mean=0, std=0.4, size=o1.size()).to(device)
         noise2 = torch.normal(mean=0, std=0.4, size=o2.size()).to(device)
         output = vae(o1+noise1, o2+noise2, temp)
-        image_loss, latent_loss, spasity = total_loss(output, o1, o2)
+        image_loss, latent_loss, spasity = total_loss(output, o1, o2, alpha)
         ep_image_loss += image_loss.item()
         ep_latent_loss += latent_loss.item()
         ep_spasity += spasity.item()
@@ -65,7 +67,8 @@ def train(dataloader, vae, temp, optimizer):
     )
     return train_loss / len(dataloader)
 
-def test(dataloader, vae, temp=0):
+def test(dataloader, vae, alpha):
+    temp = (0,0)
     vae.eval()
     test_loss = 0
     ep_image_loss, ep_latent_loss, ep_spasity = 0, 0, 0
@@ -105,11 +108,16 @@ def run(n_epoch):
     scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 10 else 0.1)
     best_loss = float('inf')
     for e in range(n_epoch):
-        temp = np.maximum(TEMP_BEGIN * np.exp(-ANNEAL_RATE * e), TEMP_MIN)
-        print("Epoch: {}, Temperature: {}, Lr: {}".format(e, temp, scheculer.get_last_lr()))
-        train_loss = train(train_loader, vae, temp, optimizer)
+        temp1 = np.maximum(TEMP_BEGIN_SAE * np.exp(-ANNEAL_RATE * e), TEMP_MIN_SAE)
+        temp2 = np.maximum(TEMP_BEGIN_AAE * np.exp(-ANNEAL_RATE * e), TEMP_MIN_AAE)
+        if e < 300:
+            alpha = 0
+        else:
+            alpha = ALPHA
+        print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
+        train_loss = train(train_loader, vae, alpha, optimizer, (temp1, temp2))
         print('====> Epoch: {} Average train loss: {:.4f}'.format(e, train_loss))
-        test_loss = test(test_loader, vae)
+        test_loss = test(test_loader, vae, alpha)
         print('====> Epoch: {} Average test loss: {:.4f}'.format(e, test_loss))
         if test_loss < best_loss:
             print("Save Model")

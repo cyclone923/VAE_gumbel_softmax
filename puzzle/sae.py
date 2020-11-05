@@ -98,9 +98,10 @@ class CubeSae(nn.Module):
         self.aae = Aae()
 
     def forward(self, o1, o2, temp):
-        recon_o1, z1 = self.sae(o1, temp)
-        recon_o2, z2 = self.sae(o2, temp)
-        z_recon = self.aae(z1, z2, temp)
+        temp1, temp2 = temp
+        recon_o1, z1 = self.sae(o1, temp1)
+        recon_o2, z2 = self.sae(o2, temp1)
+        z_recon = self.aae(z1, z2, temp2)
         return recon_o1, recon_o2, z1, z2, z_recon
 
 
