@@ -41,7 +41,7 @@ def run(vae, view_loader):
                 plt.pause(0.1)
                 plt.imshow(z1, cmap="gray")
                 plt.pause(0.1)
-                plt.imshow(torch.cat([z2, recon_z2], dim=1), cmap="gray")
+                plt.imshow(torch.cat([z2, recon_z2 > 0.5], dim=1), cmap="gray")
                 plt.pause(0.1)
 
 
