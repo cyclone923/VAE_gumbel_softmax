@@ -13,8 +13,8 @@ TEMP_MIN_SAE = 0.7
 TEMP_BEGIN_AAE = 5
 TEMP_MIN_AAE = 0.1
 ANNEAL_RATE = 0.03
-TRAIN_BZ = 800
-TEST_BZ = 800
+TRAIN_BZ = 2000
+TEST_BZ = 2000
 ALPHA = 0.7
 
 MODEL_NAME = "CubeSae"
@@ -27,7 +27,7 @@ def rec_loss_function(recon_x, x, criterion):
     return BCE
 
 def latent_spasity(z, alpha):
-    return z.sum(dim=[i for i in range(1, z.dim())]).mean()*alpha
+    return z.sum(dim=[i for i in range(1, z.dim())]).mean() * alpha
 
 def total_loss(output, o1, o2, alpha):
     recon_o1, recon_o2, z1, z2, recon_z2 = output
