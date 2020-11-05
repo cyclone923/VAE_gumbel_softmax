@@ -42,7 +42,7 @@ def total_loss(output, o1, o2):
     return image_loss, latent_loss, spasity
 
 
-def train(dataloader, vae, optimizer, temp, no_spasity):
+def train(dataloader, vae, optimizer, temp, add_spasity):
     vae.train()
     train_loss = 0
     ep_image_loss, ep_latent_loss, ep_spasity = 0, 0, 0
@@ -58,7 +58,7 @@ def train(dataloader, vae, optimizer, temp, no_spasity):
         ep_latent_loss += latent_loss.item()
         ep_spasity += spasity.item()
         loss = image_loss + latent_loss
-        if not no_spasity:
+        if add_spasity:
             loss += spasity
         loss.backward()
         train_loss += loss.item()
@@ -112,8 +112,8 @@ def run(n_epoch):
     for e in range(n_epoch):
         temp1 = np.maximum(TEMP_BEGIN_SAE * np.exp(-ANNEAL_RATE * e), TEMP_MIN_SAE)
         temp2 = np.maximum(TEMP_BEGIN_AAE * np.exp(-ANNEAL_RATE * e), TEMP_MIN_AAE)
-        print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}, Alpha: {}".format(e, temp1, temp2, scheculer.get_last_lr(), alpha))
-        train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e < 20)
+        print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
+        train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e >= 20)
         print('====> Epoch: {} Average train loss: {:.4f}'.format(e, train_loss))
         test_loss = test(test_loader, vae)
         print('====> Epoch: {} Average test loss: {:.4f}'.format(e, test_loss))
