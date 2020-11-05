@@ -77,7 +77,7 @@ class Aae(nn.Module):
         h3 = self.fc3(torch.cat([s, h2], dim=2))
         return gumbel_softmax(h3.view(-1, 1, N_ACTION), temp)
 
-    def decode(self, s, a, temp):
+    def decode(self, s, a):
         h1 = bn_and_dpt(self.bn4, self.dpt4, self.fc4(a))
         h2 = bn_and_dpt(self.bn5, self.dpt5, self.fc5(h1))
         h3 = self.fc6(h2)
@@ -86,7 +86,7 @@ class Aae(nn.Module):
 
     def forward(self, s, z, temp):
         a = self.encode(s, z, temp)
-        recon_z = self.decode(s, a, temp)
+        recon_z = self.decode(s, a)
         return recon_z
 
 
