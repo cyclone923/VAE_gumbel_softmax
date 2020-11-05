@@ -36,7 +36,7 @@ def total_loss(output, o1, o2, alpha):
     spasity = 0
     image_loss += rec_loss_function(recon_o1, o1, nn.BCELoss(reduction='none'))
     image_loss += rec_loss_function(recon_o2, o2, nn.BCELoss(reduction='none'))
-    latent_loss += rec_loss_function(recon_z2, z2.detach(), nn.BCELoss(reduction='none'))
+    latent_loss += rec_loss_function(recon_z2, z2, nn.BCELoss(reduction='none'))
     spasity += latent_spasity(z1, alpha)
     spasity += latent_spasity(z2, alpha)
     return image_loss, latent_loss, spasity
@@ -110,7 +110,7 @@ def run(n_epoch):
     for e in range(n_epoch):
         temp1 = np.maximum(TEMP_BEGIN_SAE * np.exp(-ANNEAL_RATE * e), TEMP_MIN_SAE)
         temp2 = np.maximum(TEMP_BEGIN_AAE * np.exp(-ANNEAL_RATE * e), TEMP_MIN_AAE)
-        if e < 50:
+        if e < 20:
             alpha = 0
         else:
             alpha = ALPHA
