@@ -37,7 +37,7 @@ def total_loss(output, o1, o2):
     spasity = 0
     image_loss += rec_loss_function(recon_o1, o1, nn.BCELoss(reduction='none'))
     image_loss += rec_loss_function(recon_o2, o2, nn.BCELoss(reduction='none'))
-    latent_loss += rec_loss_function(recon_z2, z2, nn.MSELoss(reduction='none'))
+    latent_loss += rec_loss_function(recon_z2, z2.detach(), nn.BCELoss(reduction='none'))
     spasity += latent_spasity(z1)
     spasity += latent_spasity(z2)
     return image_loss, latent_loss, spasity
@@ -54,13 +54,13 @@ def train(dataloader, vae, optimizer, temp, add_spasity):
         noise1 = torch.normal(mean=0, std=0.4, size=o1.size()).to(device)
         noise2 = torch.normal(mean=0, std=0.4, size=o2.size()).to(device)
         output = vae(o1+noise1, o2+noise2, temp)
-        image_loss, latent_loss, spasity = total_loss(output, o1, o2)
+        image_loss, latent_loss, sparsity = total_loss(output, o1, o2)
         ep_image_loss += image_loss.item()
         ep_latent_loss += latent_loss.item()
-        ep_spasity += spasity.item()
+        ep_spasity += sparsity.item()
         loss = image_loss + latent_loss
         if add_spasity:
-            loss += spasity
+            loss += sparsity
         loss.backward()
         train_loss += loss.item()
         optimizer.step()

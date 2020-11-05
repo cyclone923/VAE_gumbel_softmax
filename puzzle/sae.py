@@ -101,7 +101,7 @@ class CubeSae(nn.Module):
         temp1, temp2 = temp
         recon_o1, z1 = self.sae(o1, temp1)
         recon_o2, z2 = self.sae(o2, temp1)
-        z_recon = self.aae(z1, z2, temp2)
+        z_recon = self.aae(z1.detach(), z2.detach(), temp2)
         return recon_o1, recon_o2, z1, z2, z_recon
 
 
