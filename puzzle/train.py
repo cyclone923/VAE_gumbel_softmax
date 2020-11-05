@@ -19,6 +19,7 @@ ALPHA = 0.7
 
 MODEL_NAME = "CubeSae"
 
+torch.manual_seed(0)
 
 # Reconstruction + zero suppressed losses summed over all elements and batch
 def rec_loss_function(recon_x, x, criterion):
