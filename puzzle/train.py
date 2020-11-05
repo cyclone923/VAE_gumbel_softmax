@@ -36,7 +36,7 @@ def total_loss(output, o1, o2, alpha):
     spasity = 0
     image_loss += rec_loss_function(recon_o1, o1, nn.BCELoss(reduction='none'))
     image_loss += rec_loss_function(recon_o2, o2, nn.BCELoss(reduction='none'))
-    latent_loss += rec_loss_function(recon_z2, z2, nn.MSELoss(reduction='none'))
+    latent_loss += rec_loss_function(recon_z2, z2.detach(), nn.BCELoss(reduction='none'))
     spasity += latent_spasity(z1, alpha)
     spasity += latent_spasity(z2, alpha)
     return image_loss, latent_loss, spasity
@@ -105,12 +105,12 @@ def run(n_epoch):
     vae = CubeSae().to(device)
     # load_model(vae)
     optimizer = Adam(vae.parameters(), lr=1e-3)
-    scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 300 else 0.1)
+    scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 100 else 0.1)
     best_loss = float('inf')
     for e in range(n_epoch):
         temp1 = np.maximum(TEMP_BEGIN_SAE * np.exp(-ANNEAL_RATE * e), TEMP_MIN_SAE)
         temp2 = np.maximum(TEMP_BEGIN_AAE * np.exp(-ANNEAL_RATE * e), TEMP_MIN_AAE)
-        if e < 300:
+        if e < 50:
             alpha = 0
         else:
             alpha = ALPHA
@@ -128,4 +128,4 @@ def run(n_epoch):
 
 
 if __name__ == "__main__":
-    run(1000)
+    run(300)
