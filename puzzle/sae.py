@@ -78,8 +78,8 @@ class Aae(nn.Module):
         return gumbel_softmax(h3.view(-1, 1, N_ACTION), temp)
 
     def decode(self, s, a):
-        h1 = bn_and_dpt(self.bn4, self.dpt4, self.fc4(a))
-        h2 = bn_and_dpt(self.bn5, self.dpt5, self.fc5(h1))
+        h1 = bn_and_dpt(self.bn4, self.dpt4, torch.relu(self.fc4(a)))
+        h2 = bn_and_dpt(self.bn5, self.dpt5, torch.relu(self.fc5(h1)))
         h3 = self.fc6(h2)
         h3 = h3.view(-1, LATENT_DIM, 1)
         return torch.sigmoid(h3+s)
