@@ -3,7 +3,7 @@ from torch import nn
 from puzzle.gumble import gumbel_softmax
 from puzzle.generate_puzzle import BASE_SIZE
 
-LATENT_DIM = 64
+LATENT_DIM = 36
 CATEGORICAL_DIM = 1
 N_ACTION = 128
 
@@ -82,7 +82,7 @@ class Aae(nn.Module):
         h2 = bn_and_dpt(self.bn5, self.dpt5, self.fc5(h1))
         h3 = self.fc6(h2)
         h3 = h3.view(-1, LATENT_DIM, 1)
-        return gumbel_softmax(h3+s, temp)
+        return torch.sigmoid(h3+s)
 
     def forward(self, s, z, temp):
         a = self.encode(s, z, temp)
