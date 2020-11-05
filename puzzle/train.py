@@ -79,7 +79,7 @@ def test(dataloader, vae, alpha):
             noise1 = torch.normal(mean=0, std=0.4, size=o1.size()).to(device)
             noise2 = torch.normal(mean=0, std=0.4, size=o2.size()).to(device)
             output = vae(o1 + noise1, o2 + noise2, temp)
-            image_loss, latent_loss, spasity = total_loss(output, o1, o2)
+            image_loss, latent_loss, spasity = total_loss(output, o1, o2, alpha)
             ep_image_loss += image_loss.item()
             ep_latent_loss += latent_loss.item()
             ep_spasity += spasity.item()
@@ -114,7 +114,7 @@ def run(n_epoch):
             alpha = 0
         else:
             alpha = ALPHA
-        print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
+        print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}, Alpha: {}".format(e, temp1, temp2, scheculer.get_last_lr(), alpha))
         train_loss = train(train_loader, vae, alpha, optimizer, (temp1, temp2))
         print('====> Epoch: {} Average train loss: {:.4f}'.format(e, train_loss))
         test_loss = test(test_loader, vae, alpha)
