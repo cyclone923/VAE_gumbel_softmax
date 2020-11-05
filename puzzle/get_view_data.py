@@ -4,7 +4,7 @@ from puzzle.gumble import device
 from puzzle.train import MODEL_NAME
 from torch.utils.data import DataLoader
 import torch
-from puzzle.train import load_data, TEMP_MIN
+from puzzle.train import load_data, TEMP_MIN_SAE, TEMP_BEGIN_AAE
 import matplotlib.pyplot as plt
 
 N_EXAMPLES = 200
@@ -29,7 +29,7 @@ def run(vae, view_loader):
             batch_o2 = data_next.to(device)
             noise1 = torch.normal(mean=0, std=0.4, size=batch_o1.size()).to(device)
             noise2 = torch.normal(mean=0, std=0.4, size=batch_o2.size()).to(device)
-            output = vae(batch_o1 + noise1, batch_o2 + noise2, 0)
+            output = vae(batch_o1 + noise1, batch_o2 + noise2, (0, 0))
             for o1, o2, recon_o1, recon_o2, z1, z2, recon_z2 in zip(*([batch_o1, batch_o2] + [i for i in output])):
                 plt.imshow(o1.squeeze(), cmap="gray")
                 plt.pause(0.1)
