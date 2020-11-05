@@ -9,11 +9,11 @@ from torch.optim.lr_scheduler import LambdaLR
 import numpy as np
 
 TEMP_BEGIN = 5
-TEMP_MIN = 0.05
+TEMP_MIN = 0.2
 ANNEAL_RATE = 0.02
 TRAIN_BZ = 800
 TEST_BZ = 800
-ALPHA = 0.7
+ALPHA = 0.5
 
 MODEL_NAME = "CubeSae"
 
