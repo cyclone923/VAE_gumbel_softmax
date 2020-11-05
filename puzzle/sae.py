@@ -3,7 +3,7 @@ from torch import nn
 from puzzle.gumble import gumbel_softmax
 from puzzle.generate_puzzle import BASE_SIZE
 
-LATENT_DIM = 36
+LATENT_DIM = 72
 CATEGORICAL_DIM = 1
 N_ACTION = 128
 

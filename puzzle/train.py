@@ -118,7 +118,7 @@ def run(n_epoch):
         train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e >= 10)
         print('====> Epoch: {} Average train loss: {:.4f}'.format(e, train_loss))
         test_loss = test(test_loader, vae)
-        print('====> Epoch: {} Average test loss: {:.4f}'.format(e, test_loss))
+        print('====> Epoch: {} Average test loss: {:.4f}, best loss {:.4f}'.format(e, test_loss, best_loss))
         if test_loss < best_loss:
             print("Save Model")
             torch.save(vae.state_dict(), "puzzle/model/{}.pth".format(MODEL_NAME))
