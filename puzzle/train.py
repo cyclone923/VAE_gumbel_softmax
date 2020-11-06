@@ -11,9 +11,9 @@ import matplotlib.pyplot as plt
 import os
 
 
-TEMP_BEGIN_SAE = 5
+TEMP_BEGIN_SAE = 50
 TEMP_MIN_SAE = 0.7
-TEMP_BEGIN_AAE = 5
+TEMP_BEGIN_AAE = 50
 TEMP_MIN_AAE = 0.1
 ANNEAL_RATE = 0.03
 TRAIN_BZ = 1000
