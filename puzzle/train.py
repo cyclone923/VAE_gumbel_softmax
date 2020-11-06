@@ -109,7 +109,7 @@ def save_image(output, b_o1, b_o2, e):
     N_SMAPLE= 5
     b_recon_o1, b_recon_o2, b_z1, b_z2, b_recon_z2, b_a = output
     selected = torch.randint(low=0, high=TEST_BZ, size=(N_SMAPLE,))
-    pre_process = lambda img: img[selected].squeeze()
+    pre_process = lambda img: img[selected].squeeze().detach().cpu()
 
     fig, axs = plt.subplots(N_SMAPLE, 8)
     for i, (o1, recon_o1, o2, recon_o2, z1, z2, recon_z2, a) in enumerate(
@@ -128,6 +128,7 @@ def save_image(output, b_o1, b_o2, e):
         show_img(axs[i,7], a.view(N_ACTION_SQTR, N_ACTION_SQTR))
     plt.tight_layout()
     plt.savefig("puzzle/image/{}.png".format(e))
+    plt.close(fig)
 
 
 
