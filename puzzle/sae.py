@@ -8,7 +8,7 @@ CATEGORICAL_DIM = 1
 N_ACTION = 12 ** 2
 
 
-def bn_and_dpt(bn, dpt, x):
+def bn_and_dpt(x, bn, dpt):
     return dpt(bn(x))
 
 class Sae(nn.Module):
@@ -32,15 +32,15 @@ class Sae(nn.Module):
         self.fc6 = nn.Linear(in_features=1000, out_features=(BASE_SIZE*3) ** 2)
 
     def encode(self, x):
-        h1 = bn_and_dpt(self.bn1, self.dpt1, torch.tanh(self.conv1(x)))
-        h2 = bn_and_dpt(self.bn2, self.dpt2, torch.tanh(self.conv2(h1)))
+        h1 = bn_and_dpt(torch.tanh(self.conv1(x)), self.bn1, self.dpt1)
+        h2 = bn_and_dpt(torch.tanh(self.conv2(h1)), self.bn2, self.dpt2)
         h3 = self.fc3(torch.flatten(h2, start_dim=1, end_dim=-1))
         return h3.view(-1, LATENT_DIM, CATEGORICAL_DIM)
 
     def decode(self, z_y):
         z = z_y.view(-1, 1, LATENT_DIM * CATEGORICAL_DIM)
-        h4 = bn_and_dpt(self.bn4, self.dpt5, torch.relu(self.fc4(z)))
-        h5 = bn_and_dpt(self.bn5, self.dpt5, torch.relu(self.fc5(h4)))
+        h4 = bn_and_dpt(torch.relu(self.fc4(z)), self.bn4, self.dpt5)
+        h5 = bn_and_dpt(torch.relu(self.fc5(h4)), self.bn5, self.dpt5)
         return torch.sigmoid(self.fc6(h5)).view(-1, 1, BASE_SIZE*3, BASE_SIZE*3)
 
     def forward(self, x, temp):
@@ -72,14 +72,14 @@ class Aae(nn.Module):
     def encode(self, s, z, temp):
         s = torch.flatten(s, start_dim=1).unsqueeze(1)
         z = torch.flatten(z, start_dim=1).unsqueeze(1)
-        h1 = bn_and_dpt(self.bn1, self.dpt1, torch.relu(self.fc1(torch.cat([s, z], dim=2))))
-        h2 = bn_and_dpt(self.bn2, self.dpt2, torch.relu(self.fc2(torch.cat([s, h1], dim=2))))
+        h1 = bn_and_dpt(torch.relu(self.fc1(torch.cat([s, z], dim=2))), self.bn1, self.dpt1)
+        h2 = bn_and_dpt(torch.relu(self.fc2(torch.cat([s, h1], dim=2))), self.bn2, self.dpt2)
         h3 = self.fc3(torch.cat([s, h2], dim=2))
         return gumbel_softmax(h3.view(-1, 1, N_ACTION), temp)
 
     def decode(self, s, a, temp):
-        h1 = bn_and_dpt(self.bn4, self.dpt4, torch.relu(self.fc4(a)))
-        h2 = bn_and_dpt(self.bn5, self.dpt5, torch.relu(self.fc5(h1)))
+        h1 = bn_and_dpt(torch.relu(self.fc4(a)), self.bn4, self.dpt4)
+        h2 = bn_and_dpt(torch.relu(self.fc5(h1)), self.bn5, self.dpt5)
         h3 = self.fc6(h2)
         h3 = h3.view(-1, LATENT_DIM, 1)
         return gumbel_softmax(h3+s, temp)
