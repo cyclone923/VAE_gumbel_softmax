@@ -88,8 +88,8 @@ def test(dataloader, vae, e, temp = (0,0)):
             output = vae(o1 + noise1, o2 + noise2, temp)
             image_loss, latent_loss, spasity = total_loss(output, o1, o2)
             ep_image_loss += image_loss.item()
-            ep_latent_loss += latent_loss.item()
-            ep_spasity += spasity.item()
+            # ep_latent_loss += latent_loss.item()
+            # ep_spasity += spasity.item()
             loss = image_loss + latent_loss + spasity
             test_loss += loss.item()
             if i == 0:
