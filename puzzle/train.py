@@ -42,7 +42,7 @@ def total_loss(output, o1, o2):
     spasity = 0
     image_loss += rec_loss_function(recon_o1, o1, nn.BCELoss(reduction='none'))
     image_loss += rec_loss_function(recon_o2, o2, nn.BCELoss(reduction='none'))
-    latent_loss += rec_loss_function(recon_z2, z2.detach(), nn.BCELoss(reduction='none'))
+    latent_loss += rec_loss_function(recon_z2, z2.detach(), nn.MSELoss(reduction='none'))
     spasity += latent_spasity(z1)
     spasity += latent_spasity(z2)
     return image_loss, latent_loss, spasity
@@ -130,12 +130,9 @@ def save_image(output, b_o1, b_o2, e):
     plt.savefig("puzzle/image/{}.png".format(e))
     plt.close(fig)
 
-
-
 def load_model(vae):
     vae.load_state_dict(torch.load("puzzle/model/{}.pth".format(MODEL_NAME)))
     print("puzzle/model/{}.pth loaded".format(MODEL_NAME))
-
 
 def run(n_epoch):
     train_set, test_set, _, _ = get_train_and_test_dataset(*load_data())
@@ -162,8 +159,6 @@ def run(n_epoch):
             torch.save(vae.state_dict(), "puzzle/model/{}.pth".format(MODEL_NAME))
             best_loss = test_loss
         scheculer.step()
-
-
 
 if __name__ == "__main__":
     os.makedirs("puzzle/image", exist_ok=True)
