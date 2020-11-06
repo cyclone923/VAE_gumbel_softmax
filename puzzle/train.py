@@ -43,7 +43,7 @@ def total_loss(output, o1, o2):
     spasity = 0
     image_loss += rec_loss_function(recon_o1, o1, nn.BCELoss(reduction='none'))
     image_loss += rec_loss_function(recon_o2, o2, nn.BCELoss(reduction='none'))
-    latent_loss += rec_loss_function(recon_z2, z2.detach(), nn.BCELoss(reduction='none')) * BETA
+    latent_loss += rec_loss_function(recon_z2, z2.detach(), nn.L1Loss(reduction='none')) * BETA
     spasity += latent_spasity(z1)
     spasity += latent_spasity(z2)
     return image_loss, latent_loss, spasity
@@ -76,7 +76,7 @@ def train(dataloader, vae, optimizer, temp, add_spasity):
     )
     return train_loss / len(dataloader)
 
-def test(dataloader, vae, e, temp=(0,0)):
+def test(dataloader, vae, e, temp=(0, 0)):
     vae.eval()
     test_loss = 0
     ep_image_loss, ep_latent_loss, ep_spasity = 0, 0, 0
@@ -156,7 +156,7 @@ def run(n_epoch):
         print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
         train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e >= 100)
         print('====> Epoch: {} Average train loss: {:.4f}'.format(e, train_loss))
-        test_loss = test(test_loader, vae, e)
+        test_loss = test(test_loader, vae, e, (temp1, temp2))
         print('====> Epoch: {} Average test loss: {:.4f}, best loss {:.4f}'.format(e, test_loss, best_loss))
         if test_loss < best_loss:
             print("Save Model")
