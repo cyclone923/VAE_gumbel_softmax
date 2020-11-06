@@ -58,6 +58,7 @@ class Aae(nn.Module):
 
         self.fc4 = nn.Linear(in_features=N_ACTION, out_features=400)
         self.fc5 = nn.Linear(in_features=400, out_features=400)
+        self.fc6 = nn.Linear(in_features=400, out_features=LATENT_DIM)
 
         self.bn_input = nn.BatchNorm1d(num_features=1)
         self.bn_effect = nn.BatchNorm1d(num_features=1)
