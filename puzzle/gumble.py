@@ -33,7 +33,7 @@ def gumbel_softmax_sample(logits, temperature, add_noise=GUMBLE_NOISE):
             ret = torch.softmax(logits / temperature, dim=-1)
     return ret
 
-def gumbel_softmax(q_y, temperature, hard=False):
+def gumbel_softmax(q_y, temperature, hard=True):
     """
     ST-gumple-softmax
     input: [*, n_class]
@@ -42,8 +42,13 @@ def gumbel_softmax(q_y, temperature, hard=False):
 
     y = gumbel_softmax_sample(q_y, temperature)
     if hard:
-        _, ind = y.max(dim=-1)
-        y_hard = torch.zeros(size=y.size()).to(device).scatter(dim=-1, index=ind.unsqueeze(-1), value=1)
+        if y.size()[-1] == 1:
+            true_bit = y > 0.5
+            y_hard = torch.zeros(size=y.size()).to(device)
+            y_hard[true_bit] = 1
+        else:
+            _, ind = y.max(dim=-1)
+            y_hard = torch.zeros(size=y.size()).to(device).scatter(dim=-1, index=ind.unsqueeze(-1), value=1)
         y_ret = (y_hard - y).detach() + y
     else:
         y_ret = y

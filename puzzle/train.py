@@ -166,4 +166,4 @@ def run(n_epoch):
 if __name__ == "__main__":
     os.makedirs("puzzle/image", exist_ok=True)
     os.makedirs("puzzle/model", exist_ok=True)
-    run(1000)
+    run(5000)
