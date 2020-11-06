@@ -12,15 +12,18 @@ def sample_gumbel(shape, eps=1e-20):
     U = torch.rand(shape).to(device)
     return -torch.log(-torch.log(U + eps) + eps)
 
+def sample_bin_concrete(shape, eps=1e-20):
+    U = torch.rand(shape).to(device)
+    return torch.log(U + eps) - torch.log(1 - U - eps)
+
 def gumbel_softmax_sample(logits, temperature, add_noise=GUMBLE_NOISE):
     if logits.size()[-1] == 1:
         if temperature == 0: # make it to sigmoid if it is a bit choice
             ret = (logits > 0.5).float()
         else:
             if add_noise:
-                noise1 = sample_gumbel(logits.size())
-                noise2 = sample_gumbel(logits.size())
-                logits = (logits + noise1) / (1 + noise2)
+                noise = sample_bin_concrete(logits.shape)
+                logits = logits + noise
             ret = torch.sigmoid(logits / temperature)
     else:
         if temperature == 0: # not differentiable in test case, but it is ok
