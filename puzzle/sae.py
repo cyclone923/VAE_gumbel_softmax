@@ -17,18 +17,18 @@ class Sae(nn.Module):
         super(Sae, self).__init__()
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=16, kernel_size=3, stride=1, padding=(1,1))
         self.bn1 = nn.BatchNorm2d(num_features=16)
-        self.dpt1 = nn.Dropout(0.7)
+        self.dpt1 = nn.Dropout(0.4)
         self.conv2 = nn.Conv2d(in_channels=16, out_channels=16, kernel_size=3, stride=1, padding=(1,1))
         self.bn2 = nn.BatchNorm2d(num_features=16)
-        self.dpt2 = nn.Dropout(0.7)
+        self.dpt2 = nn.Dropout(0.4)
         self.fc3 = nn.Linear(in_features=(BASE_SIZE*3) ** 2 * 16, out_features=LATENT_DIM*CATEGORICAL_DIM)
 
         self.fc4 = nn.Linear(in_features=LATENT_DIM * CATEGORICAL_DIM, out_features=1000)
         self.bn4 = nn.BatchNorm1d(num_features=1)
-        self.dpt4 = nn.Dropout(0.7)
+        self.dpt4 = nn.Dropout(0.4)
         self.fc5 = nn.Linear(in_features=1000, out_features=1000)
         self.bn5 = nn.BatchNorm1d(num_features=1)
-        self.dpt5 = nn.Dropout(0.7)
+        self.dpt5 = nn.Dropout(0.4)
         self.fc6 = nn.Linear(in_features=1000, out_features=(BASE_SIZE*3) ** 2)
 
     def encode(self, x):
@@ -54,18 +54,18 @@ class Aae(nn.Module):
         super(Aae, self).__init__()
         self.fc1 = nn.Linear(in_features=LATENT_DIM + LATENT_DIM, out_features=400)
         self.bn1 = nn.BatchNorm1d(num_features=1)
-        self.dpt1 = nn.Dropout(0.7)
+        self.dpt1 = nn.Dropout(0.4)
         self.fc2 = nn.Linear(in_features=400 + LATENT_DIM, out_features=400)
         self.bn2 = nn.BatchNorm1d(num_features=1)
-        self.dpt2 = nn.Dropout(0.7)
+        self.dpt2 = nn.Dropout(0.4)
         self.fc3 = nn.Linear(in_features=400 + LATENT_DIM, out_features=N_ACTION)
 
         self.fc4 = nn.Linear(in_features=N_ACTION, out_features=400)
         self.bn4 = nn.BatchNorm1d(num_features=1)
-        self.dpt4 = nn.Dropout(0.7)
+        self.dpt4 = nn.Dropout(0.4)
         self.fc5 = nn.Linear(in_features=400, out_features=400)
         self.bn5 = nn.BatchNorm1d(num_features=1)
-        self.dpt5 = nn.Dropout(0.7)
+        self.dpt5 = nn.Dropout(0.4)
         self.fc6 = nn.Linear(in_features=400, out_features=LATENT_DIM)
 
 
@@ -91,7 +91,6 @@ class Aae(nn.Module):
 
 
 class CubeSae(nn.Module):
-
     def __init__(self):
         super(CubeSae, self).__init__()
         self.sae = Sae()
