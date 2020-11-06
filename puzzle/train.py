@@ -65,9 +65,9 @@ def train(dataloader, vae, optimizer, temp, add_spasity):
         ep_image_loss += image_loss.item()
         ep_latent_loss += latent_loss.item()
         ep_spasity += sparsity.item()
-        loss = image_loss
+        loss = image_loss + latent_loss
         if add_spasity:
-            loss += sparsity + latent_loss
+            loss += sparsity
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
