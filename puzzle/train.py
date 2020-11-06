@@ -1,4 +1,4 @@
-from puzzle.sae import CubeSae
+from puzzle.sae import CubeSae, LATENT_DIM, N_ACTION
 from puzzle.dataset import get_train_and_test_dataset, load_data
 from puzzle.gumble import device
 import torch
@@ -7,6 +7,9 @@ from torch.utils.data import DataLoader
 from torch.optim import Adam
 from torch.optim.lr_scheduler import LambdaLR
 import numpy as np
+import matplotlib.pyplot as plt
+import os
+
 
 TEMP_BEGIN_SAE = 5
 TEMP_MIN_SAE = 0.7
@@ -15,8 +18,9 @@ TEMP_MIN_AAE = 0.1
 ANNEAL_RATE = 0.03
 TRAIN_BZ = 1000
 TEST_BZ = 2000
-
 ALPHA = 0.7
+LATENT_DIM_SQRT = int(np.sqrt(LATENT_DIM))
+N_ACTION_SQTR = int(np.sqrt(N_ACTION))
 
 MODEL_NAME = "CubeSae"
 
@@ -71,7 +75,7 @@ def train(dataloader, vae, optimizer, temp, add_spasity):
     )
     return train_loss / len(dataloader)
 
-def test(dataloader, vae):
+def test(dataloader, vae, e):
     temp = (0,0)
     vae.eval()
     test_loss = 0
@@ -89,10 +93,43 @@ def test(dataloader, vae):
             ep_spasity += spasity.item()
             loss = image_loss + latent_loss + spasity
             test_loss += loss.item()
+            if i == 0:
+                save_image(output, o1, o2, e)
+
     print("TESTING LOSS REC_IMG: {:.3f}, REC_LATENT: {:.3f}, SPASITY_LATENT: {:.3f}".format(
         ep_image_loss/len(dataloader), ep_latent_loss/len(dataloader), ep_spasity/len(dataloader))
     )
     return test_loss / len(dataloader)
+
+def save_image(output, b_o1, b_o2, e):
+    def show_img(ax, img):
+        ax.axes.xaxis.set_visible(False)
+        ax.axes.yaxis.set_visible(False)
+        ax.imshow(img, cmap='gray')
+    N_SMAPLE= 5
+    b_recon_o1, b_recon_o2, b_z1, b_z2, b_recon_z2, b_a = output
+    selected = torch.randint(low=0, high=TEST_BZ, size=(N_SMAPLE,))
+    pre_process = lambda img: img[selected].squeeze()
+
+    fig, axs = plt.subplots(N_SMAPLE, 8)
+    for i, (o1, recon_o1, o2, recon_o2, z1, z2, recon_z2, a) in enumerate(
+        zip(
+            pre_process(b_o1), pre_process(b_recon_o1), pre_process(b_o2), pre_process(b_recon_o2),
+            pre_process(b_z1), pre_process(b_z2), pre_process(b_recon_z2), pre_process(b_a)
+        )
+    ):
+        show_img(axs[i,0], o1)
+        show_img(axs[i,1], recon_o1)
+        show_img(axs[i,2], o2)
+        show_img(axs[i,3], recon_o2)
+        show_img(axs[i,4], z1.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT))
+        show_img(axs[i,5], z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT))
+        show_img(axs[i,6], recon_z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT))
+        show_img(axs[i,7], a.view(N_ACTION_SQTR, N_ACTION_SQTR))
+    plt.tight_layout()
+    plt.savefig("puzzle/image/{}.png".format(e))
+
+
 
 def load_model(vae):
     vae.load_state_dict(torch.load("puzzle/model/{}.pth".format(MODEL_NAME)))
@@ -117,7 +154,7 @@ def run(n_epoch):
         print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
         train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e >= 10)
         print('====> Epoch: {} Average train loss: {:.4f}'.format(e, train_loss))
-        test_loss = test(test_loader, vae)
+        test_loss = test(test_loader, vae, e)
         print('====> Epoch: {} Average test loss: {:.4f}, best loss {:.4f}'.format(e, test_loss, best_loss))
         if test_loss < best_loss:
             print("Save Model")
@@ -128,4 +165,6 @@ def run(n_epoch):
 
 
 if __name__ == "__main__":
+    os.makedirs("puzzle/image", exist_ok=True)
+    os.makedirs("puzzle/model", exist_ok=True)
     run(300)
