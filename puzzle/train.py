@@ -44,7 +44,7 @@ def total_loss(output, o1, o2):
     image_loss += rec_loss_function(recon_o1, o1, nn.BCELoss(reduction='none'))
     image_loss += rec_loss_function(recon_o2, o2, nn.BCELoss(reduction='none'))
     image_loss += rec_loss_function(recon_o2_tilda, o2, nn.BCELoss(reduction='none'))
-    latent_loss += rec_loss_function(recon_z2, z2.detach(), nn.L1Loss(reduction='none')) * BETA
+    latent_loss += rec_loss_function(recon_z2, z2, nn.L1Loss(reduction='none')) * BETA
     spasity += latent_spasity(z1)
     spasity += latent_spasity(z2)
     return image_loss, latent_loss, spasity
@@ -108,28 +108,29 @@ def save_image(output, b_o1, b_o2, e):
         ax.axes.yaxis.set_visible(False)
         ax.imshow(img, cmap='gray')
     N_SMAPLE= 5
-    b_recon_o1, b_recon_o2, b_z1, b_z2, b_recon_z2, b_a = output
+    b_recon_o1, b_recon_o2, b_recon_tilda, b_z1, b_z2, b_recon_z2, b_a = output
     selected = torch.randint(low=0, high=TEST_BZ, size=(N_SMAPLE,))
     pre_process = lambda img: img[selected].squeeze().detach().cpu()
 
-    fig, axs = plt.subplots(N_SMAPLE, 8)
-    for i, (o1, recon_o1, o2, recon_o2, z1, z2, recon_z2, a) in enumerate(
+    fig, axs = plt.subplots(N_SMAPLE, 9)
+    for i, (o1, recon_o1, o2, recon_o2, recon_tilda, z1, z2, recon_z2, a) in enumerate(
         zip(
             pre_process(b_o1), pre_process(b_recon_o1), pre_process(b_o2), pre_process(b_recon_o2),
-            pre_process(b_z1), pre_process(b_z2), pre_process(b_recon_z2), pre_process(b_a)
+            pre_process(b_recon_tilda), pre_process(b_z1), pre_process(b_z2), pre_process(b_recon_z2), pre_process(b_a)
         )
     ):
         show_img(axs[i,0], o1)
         show_img(axs[i,1], recon_o1)
         show_img(axs[i,2], o2)
         show_img(axs[i,3], recon_o2)
-        show_img(axs[i,4], z1.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT))
+        show_img(axs[i,4], recon_tilda)
+        show_img(axs[i,5], z1.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT))
         # print("Image {}: z1 max {:.2f}, z1 min {:.2f}".format(i, z1.max(), z1.min()))
-        show_img(axs[i,5], z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT))
+        show_img(axs[i,6], z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT))
         # print("Image {}: z2 max {:.2f}, z2 min {:.2f}".format(i, z2.max(), z2.min()))
-        show_img(axs[i,6], recon_z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT))
+        show_img(axs[i,7], recon_z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT))
         # print("Image {}: recon_z2 max {:.2f}, recon_z2 min {:.2f}".format(i, recon_z2.max(), recon_z2.min()))
-        show_img(axs[i,7], a.view(N_ACTION_SQTR, N_ACTION_SQTR))
+        show_img(axs[i,8], a.view(N_ACTION_SQTR, N_ACTION_SQTR))
         # print("Image {}: a max {:.2f}, a min {:.2f}".format(i, a.max(), a.min()))
     plt.tight_layout()
     plt.savefig("puzzle/image/{}.png".format(e))
