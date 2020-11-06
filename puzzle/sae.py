@@ -73,11 +73,14 @@ class Aae(nn.Module):
         return gumbel_softmax(h3.view(-1, 1, N_ACTION), temp)
 
     def decode(self, s, a, temp):
+        s = torch.flatten(s, start_dim=1).unsqueeze(1)
+        s = self.bn_input(s)
+        s = s.view(-1, LATENT_DIM, 1)
         h1 = torch.relu(self.fc4(a))
         h2 = torch.relu(self.fc5(h1))
-        h3 = self.fc6(h2)
+        h3 = self.bn_effect(self.fc6(h2))
         h3 = h3.view(-1, LATENT_DIM, 1)
-        return gumbel_softmax(self.bn_effect(h3)+self.bn_input(s), temp)
+        return gumbel_softmax(h3+s, temp)
 
     def forward(self, s, z, temp):
         a = self.encode(s, z, temp)
