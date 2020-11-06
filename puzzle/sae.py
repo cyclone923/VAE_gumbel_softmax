@@ -40,7 +40,7 @@ class Sae(nn.Module):
     def decode(self, z_y):
         z = z_y.view(-1, 1, LATENT_DIM * CATEGORICAL_DIM)
         h4 = bn_and_dpt(self.bn4, self.dpt5, torch.relu(self.fc4(z)))
-        h5 = bn_and_dpt(self.bn4, self.dpt5, torch.relu(self.fc5(h4)))
+        h5 = bn_and_dpt(self.bn5, self.dpt5, torch.relu(self.fc5(h4)))
         return torch.sigmoid(self.fc6(h5)).view(-1, 1, BASE_SIZE*3, BASE_SIZE*3)
 
     def forward(self, x, temp):
