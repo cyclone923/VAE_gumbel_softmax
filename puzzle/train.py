@@ -11,9 +11,9 @@ import matplotlib.pyplot as plt
 import os
 
 
-TEMP_BEGIN_SAE = 50
+TEMP_BEGIN_SAE = 5
 TEMP_MIN_SAE = 0.7
-TEMP_BEGIN_AAE = 50
+TEMP_BEGIN_AAE = 5
 TEMP_MIN_AAE = 0.1
 ANNEAL_RATE = 0.03
 TRAIN_BZ = 1000
@@ -75,8 +75,7 @@ def train(dataloader, vae, optimizer, temp, add_spasity):
     )
     return train_loss / len(dataloader)
 
-def test(dataloader, vae, e):
-    temp = (0,0)
+def test(dataloader, vae, e, temp = (0,0)):
     vae.eval()
     test_loss = 0
     ep_image_loss, ep_latent_loss, ep_spasity = 0, 0, 0
@@ -156,7 +155,7 @@ def run(n_epoch):
         print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
         train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e >= 10)
         print('====> Epoch: {} Average train loss: {:.4f}'.format(e, train_loss))
-        test_loss = test(test_loader, vae, e)
+        test_loss = test(test_loader, vae, e, (temp1, temp2))
         print('====> Epoch: {} Average test loss: {:.4f}, best loss {:.4f}'.format(e, test_loss, best_loss))
         if test_loss < best_loss:
             print("Save Model")
