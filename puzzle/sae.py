@@ -82,7 +82,7 @@ class Aae(nn.Module):
         h2 = bn_and_dpt(torch.relu(self.fc5(h1)), self.bn5, self.dpt5)
         h3 = self.fc6(h2)
         h3 = h3.view(-1, LATENT_DIM, 1)
-        return gumbel_softmax(h3+s, temp, hard=True)
+        return gumbel_softmax(h3+s, temp)
 
     def forward(self, s, z, temp):
         a = self.encode(s, z, temp)
@@ -100,7 +100,7 @@ class CubeSae(nn.Module):
         temp1, temp2 = temp
         recon_o1, z1 = self.sae(o1, temp1)
         recon_o2, z2 = self.sae(o2, temp1)
-        z_recon, a = self.aae(z1, z2, temp2)
+        z_recon, a = self.aae(z1.detach(), z2.detach(), temp2)
         return recon_o1, recon_o2, z1, z2, z_recon, a
 
 
