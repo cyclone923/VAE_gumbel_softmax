@@ -16,7 +16,7 @@ TEMP_MIN_SAE = 0.7
 TEMP_BEGIN_AAE = 5
 TEMP_MIN_AAE = 0.1
 ANNEAL_RATE = 0.03
-TRAIN_BZ = 400
+TRAIN_BZ = 2000
 TEST_BZ = 2000
 ALPHA = 0.7
 BETA = 1
@@ -44,7 +44,7 @@ def total_loss(output, o1, o2):
     image_loss += rec_loss_function(recon_o1, o1, nn.BCELoss(reduction='none'))
     image_loss += rec_loss_function(recon_o2, o2, nn.BCELoss(reduction='none'))
     image_loss += rec_loss_function(recon_o2_tilda, o2, nn.BCELoss(reduction='none'))
-    latent_loss += rec_loss_function(recon_z2, z2, nn.L1Loss(reduction='none')) * BETA
+    latent_loss += rec_loss_function(recon_z2, z2, nn.L1Loss(reduction='none'))
     spasity += latent_spasity(z1)
     spasity += latent_spasity(z2)
     return image_loss, latent_loss, spasity
