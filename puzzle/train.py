@@ -9,6 +9,7 @@ from torch.optim.lr_scheduler import LambdaLR
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import shutil
 
 TEMP_BEGIN_SAE = 5
 TEMP_MIN_SAE = 0.3
@@ -184,7 +185,7 @@ def run(n_epoch):
 
 if __name__ == "__main__":
     try:
-        os.rmdir("puzzle/image")
+        shutil.rmtree('/path/to/your/dir/')
     except:
         pass
 
