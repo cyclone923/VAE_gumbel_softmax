@@ -15,8 +15,8 @@ TEMP_BEGIN_SAE = 5
 TEMP_MIN_SAE = 0.3
 TEMP_BEGIN_AAE = 5
 TEMP_MIN_AAE = 0.1
-ANNEAL_RATE = 0.003
-TRAIN_BZ = 2000
+ANNEAL_RATE = 0.01
+TRAIN_BZ = 400
 TEST_BZ = 2000
 ALPHA = 1
 BETA = 1
@@ -166,7 +166,7 @@ def run(n_epoch):
     vae = CubeSae().to(device)
     # load_model(vae)
     optimizer = Adam(vae.parameters(), lr=1e-3)
-    scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 200 else 0.1)
+    scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 1000 else 0.1)
     best_loss = float('inf')
     best_epoch = 0
     for e in range(n_epoch):
@@ -191,4 +191,4 @@ if __name__ == "__main__":
     os.makedirs("puzzle/image/actions", exist_ok=True)
     os.makedirs("puzzle/image/samples", exist_ok=True)
     os.makedirs("puzzle/model", exist_ok=True)
-    run(2000)
+    run(3000)
