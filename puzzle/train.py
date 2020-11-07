@@ -128,7 +128,7 @@ def save_image(output, b_o1, b_o2, e):
         show_img(axs[i,5], z1.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT))
         show_img(axs[i,6], z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT))
         show_img(axs[i,7], recon_z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT))
-        show_img(axs[i,8], torch.abs(z2 - recon_z2).view(N_ACTION_SQTR, N_ACTION_SQTR))
+        show_img(axs[i,8], torch.abs(z2 - recon_z2).view(LATENT_DIM_SQRT, LATENT_DIM_SQRT))
         show_img(axs[i,9], a.view(N_ACTION_SQTR, N_ACTION_SQTR))
     plt.tight_layout()
     plt.savefig("puzzle/image/{}.png".format(e))
