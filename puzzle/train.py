@@ -83,6 +83,7 @@ def test(dataloader, vae, e, temp=(0, 0)):
     test_loss = 0
     ep_image_loss, ep_latent_loss, ep_spasity = 0, 0, 0
     with torch.no_grad():
+        all_a = []
         for i, (data, data_next) in enumerate(dataloader):
             o1 = data.to(device)
             o2 = data_next.to(device)
@@ -97,17 +98,19 @@ def test(dataloader, vae, e, temp=(0, 0)):
             test_loss += loss.item()
             if i == 0:
                 save_image(output, o1, o2, e)
-                n_action = save_action_histogram(output, e)
+            all_a.append(output[-1])
+        n_action = save_action_histogram(output, torch.cat(all_a, dim=0))
 
     print("TESTING LOSS REC_IMG: {:.3f}, REC_LATENT: {:.3f}, SPASITY_LATENT: {:.3f}, {} ACTIONS USED".format(
         ep_image_loss/len(dataloader), ep_latent_loss/len(dataloader), ep_spasity/len(dataloader), n_action)
     )
     return test_loss / len(dataloader)
 
-def save_action_histogram(output, e):
-    _, _, _, _, _, _, b_a = output
+def save_action_histogram(output, all_a):
+    print(all_a.size())
+    exit(0)
 
-    all_a = torch.argmax(b_a.squeeze(), dim=-1).detach().cpu()
+    all_a = torch.argmax(all_a.squeeze(), dim=-1).detach().cpu()
     fig = plt.figure()
     plt.hist(all_a.numpy(), bins=N_ACTION)
     unique_a = torch.unique(all_a).shape[0]
