@@ -68,8 +68,8 @@ class Aae(nn.Module):
         self.dpt5 = nn.Dropout(0.4)
         self.fc6 = nn.Linear(in_features=400, out_features=LATENT_DIM)
 
-        self.bn_input = nn.BatchNorm1d(num_features=1)
-        self.bn_effect = nn.BatchNorm1d(num_features=1)
+        self.bn_input = nn.BatchNorm1d(num_features=LATENT_DIM)
+        self.bn_effect = nn.BatchNorm1d(num_features=LATENT_DIM)
 
 
     def encode(self, s, z, temp):
@@ -81,13 +81,11 @@ class Aae(nn.Module):
         return gumbel_softmax(h3.view(-1, 1, N_ACTION), temp)
 
     def decode(self, s, a, temp):
-        s = torch.flatten(s, start_dim=1).unsqueeze(1)
         s = self.bn_input(s)
-        s = s.view(-1, LATENT_DIM, 1)
         h4 = bn_and_dpt(torch.relu(self.fc4(a)), self.bn4, self.dpt4)
         h5 = bn_and_dpt(torch.relu(self.fc5(h4)), self.bn5, self.dpt5)
-        h6 = self.bn_effect(self.fc6(h5))
-        h6 = h6.view(-1, LATENT_DIM, 1)
+        h6 = self.fc6(h5)
+        h6 = self.bn_effect(h6.view(-1, LATENT_DIM, 1))
         return gumbel_softmax(h6+s, temp)
 
     def forward(self, s, z, temp):
