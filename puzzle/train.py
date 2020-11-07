@@ -178,6 +178,7 @@ def run(n_epoch):
         scheculer.step()
 
 if __name__ == "__main__":
+    os.rmdir("puzzle/image")
     os.makedirs("puzzle/image/actions", exist_ok=True)
     os.makedirs("puzzle/image/samples", exist_ok=True)
     os.makedirs("puzzle/model", exist_ok=True)
