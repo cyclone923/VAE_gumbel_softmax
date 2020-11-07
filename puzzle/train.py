@@ -144,7 +144,6 @@ def save_image(output, b_o1, b_o2, e):
     plt.tight_layout()
     plt.savefig("puzzle/image/samples/{}.png".format(e))
     plt.close(fig)
-    exit(0)
 
 
 def load_model(vae):
