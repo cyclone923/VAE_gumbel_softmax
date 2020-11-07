@@ -47,6 +47,7 @@ def total_loss(output, o1, o2):
     latent_loss += rec_loss_function(recon_z2, z2, nn.L1Loss(reduction='none')) * BETA
     spasity += latent_spasity(z1)
     spasity += latent_spasity(z2)
+    spasity += latent_spasity(recon_z2)
     return image_loss, latent_loss, spasity
 
 
