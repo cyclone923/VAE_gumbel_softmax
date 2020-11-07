@@ -113,7 +113,7 @@ def save_image(output, b_o1, b_o2, e):
 
     all_a = torch.argmax(b_a.squeeze(), dim=-1).detach().cpu()
     fig = plt.figure()
-    plt.hist(all_a, bins=N_ACTION)
+    plt.hist(all_a.numpy(), bins=N_ACTION)
     unique_a = torch.unique(all_a).shape[0]
     plt.title('Action used {}'.format(unique_a))
     plt.savefig("puzzle/image/actions/{}.png".format(e))
