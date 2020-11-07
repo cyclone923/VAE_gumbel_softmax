@@ -152,6 +152,7 @@ def run(n_epoch):
     optimizer = Adam(vae.parameters(), lr=1e-3)
     scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 200 else 0.1)
     best_loss = float('inf')
+    best_epoch = 0
     for e in range(n_epoch):
         temp1 = np.maximum(TEMP_BEGIN_SAE * np.exp(-ANNEAL_RATE * e), TEMP_MIN_SAE)
         temp2 = np.maximum(TEMP_BEGIN_AAE * np.exp(-ANNEAL_RATE * e), TEMP_MIN_AAE)
@@ -159,14 +160,15 @@ def run(n_epoch):
         train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e >= 100)
         print('====> Epoch: {} Average train loss: {:.4f}'.format(e, train_loss))
         test_loss = test(test_loader, vae, e, (temp1, temp2))
-        print('====> Epoch: {} Average test loss: {:.4f}, best loss {:.4f}'.format(e, test_loss, best_loss))
+        print('====> Epoch: {} Average test loss: {:.4f}, best loss {:.4f} in epoch {}'.format(e, test_loss, best_loss, best_epoch))
         if test_loss < best_loss:
             print("Save Model")
             torch.save(vae.state_dict(), "puzzle/model/{}.pth".format(MODEL_NAME))
             best_loss = test_loss
+            best_epoch = e
         scheculer.step()
 
 if __name__ == "__main__":
     os.makedirs("puzzle/image", exist_ok=True)
     os.makedirs("puzzle/model", exist_ok=True)
-    run(5000)
+    run(2000)
