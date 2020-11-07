@@ -71,7 +71,6 @@ class Aae(nn.Module):
         self.bn_input = nn.BatchNorm1d(num_features=LATENT_DIM)
         self.bn_effect = nn.BatchNorm1d(num_features=LATENT_DIM)
 
-
     def encode(self, s, z, temp):
         s = torch.flatten(s, start_dim=1).unsqueeze(1)
         z = torch.flatten(z, start_dim=1).unsqueeze(1)

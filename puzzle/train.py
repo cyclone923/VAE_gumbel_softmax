@@ -96,19 +96,15 @@ def test(dataloader, vae, e, temp=(0, 0)):
             test_loss += loss.item()
             if i == 0:
                 save_image(output, o1, o2, e)
+                n_action = save_action_histogram(output, e)
 
-    print("TESTING LOSS REC_IMG: {:.3f}, REC_LATENT: {:.3f}, SPASITY_LATENT: {:.3f}".format(
-        ep_image_loss/len(dataloader), ep_latent_loss/len(dataloader), ep_spasity/len(dataloader))
+    print("TESTING LOSS REC_IMG: {:.3f}, REC_LATENT: {:.3f}, SPASITY_LATENT: {:.3f}, {} ACTIONS USED".format(
+        ep_image_loss/len(dataloader), ep_latent_loss/len(dataloader), ep_spasity/len(dataloader), n_action)
     )
     return test_loss / len(dataloader)
 
-def save_image(output, b_o1, b_o2, e):
-    def show_img(ax, img):
-        ax.axes.xaxis.set_visible(False)
-        ax.axes.yaxis.set_visible(False)
-        ax.imshow(img, cmap='gray')
-
-    b_recon_o1, b_recon_o2, b_recon_tilda, b_z1, b_z2, b_recon_z2, b_a = output
+def save_action_histogram(output, e):
+    _, _, _, _, _, _, b_a = output
 
     all_a = torch.argmax(b_a.squeeze(), dim=-1).detach().cpu()
     fig = plt.figure()
@@ -117,6 +113,15 @@ def save_image(output, b_o1, b_o2, e):
     plt.title('Action used {}'.format(unique_a))
     plt.savefig("puzzle/image/actions/{}.png".format(e))
     plt.close(fig)
+    return unique_a
+
+def save_image(output, b_o1, b_o2, e):
+    def show_img(ax, img):
+        ax.axes.xaxis.set_visible(False)
+        ax.axes.yaxis.set_visible(False)
+        ax.imshow(img, cmap='gray')
+
+    b_recon_o1, b_recon_o2, b_recon_tilda, b_z1, b_z2, b_recon_z2, b_a = output
 
     N_SMAPLE= 5
     selected = torch.randint(low=0, high=TEST_BZ, size=(N_SMAPLE,))
