@@ -3,7 +3,7 @@ from torch import nn
 from puzzle.gumble import gumbel_softmax
 from puzzle.generate_puzzle import BASE_SIZE
 
-LATENT_DIM = 12 ** 2
+LATENT_DIM = 6 ** 2
 CATEGORICAL_DIM = 1
 N_ACTION = 12 ** 2
 
@@ -39,7 +39,7 @@ class Sae(nn.Module):
 
     def decode(self, z_y):
         z = z_y.view(-1, 1, LATENT_DIM * CATEGORICAL_DIM)
-        h4 = bn_and_dpt(torch.relu(self.fc4(z)), self.bn4, self.dpt5)
+        h4 = bn_and_dpt(torch.relu(self.fc4(z)), self.bn4, self.dpt4)
         h5 = bn_and_dpt(torch.relu(self.fc5(h4)), self.bn5, self.dpt5)
         return torch.sigmoid(self.fc6(h5)).view(-1, 1, BASE_SIZE*3, BASE_SIZE*3)
 
