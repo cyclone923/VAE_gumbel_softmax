@@ -99,14 +99,14 @@ def test(dataloader, vae, e, temp=(0, 0)):
             if i == 0:
                 save_image(output, o1, o2, e)
             all_a.append(output[-1])
-        n_action = save_action_histogram(torch.cat(all_a, dim=0))
+        n_action = save_action_histogram(torch.cat(all_a, dim=0), e)
 
     print("TESTING LOSS REC_IMG: {:.3f}, REC_LATENT: {:.3f}, SPASITY_LATENT: {:.3f}, {} ACTIONS USED".format(
         ep_image_loss/len(dataloader), ep_latent_loss/len(dataloader), ep_spasity/len(dataloader), n_action)
     )
     return test_loss / len(dataloader)
 
-def save_action_histogram(all_a):
+def save_action_histogram(all_a, e):
 
     all_a = torch.argmax(all_a.squeeze(), dim=-1).detach().cpu()
     fig = plt.figure()
