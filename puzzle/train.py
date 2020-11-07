@@ -44,7 +44,7 @@ def total_loss(output, o1, o2):
     image_loss += rec_loss_function(recon_o1, o1, nn.BCELoss(reduction='none'))
     image_loss += rec_loss_function(recon_o2, o2, nn.BCELoss(reduction='none'))
     image_loss += rec_loss_function(recon_o2_tilda, o2, nn.BCELoss(reduction='none'))
-    latent_loss += rec_loss_function(recon_z2, z2, nn.MSELoss(reduction='none')) * BETA
+    latent_loss += rec_loss_function(recon_z2, z2, nn.L1Loss(reduction='none')) * BETA
     spasity += latent_spasity(z1)
     spasity += latent_spasity(z2)
     spasity += latent_spasity(recon_z2)
@@ -108,8 +108,18 @@ def save_image(output, b_o1, b_o2, e):
         ax.axes.xaxis.set_visible(False)
         ax.axes.yaxis.set_visible(False)
         ax.imshow(img, cmap='gray')
+
     N_SMAPLE= 5
     b_recon_o1, b_recon_o2, b_recon_tilda, b_z1, b_z2, b_recon_z2, b_a = output
+
+    all_a = torch.argmax(b_a.squeeze(), dim=-1).detach().cpu()
+    fig = plt.figure()
+    plt.hist(all_a, bins=N_ACTION)
+    unique_a = torch.unique(all_a).size()[0]
+    plt.title('Action used {}'.format(unique_a))
+    plt.savefig("puzzle/image/actions/{}.png".format(e))
+    plt.close(fig)
+
     selected = torch.randint(low=0, high=TEST_BZ, size=(N_SMAPLE,))
     pre_process = lambda img: img[selected].squeeze().detach().cpu()
 
@@ -130,9 +140,11 @@ def save_image(output, b_o1, b_o2, e):
         show_img(axs[i,7], recon_z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT))
         show_img(axs[i,8], torch.abs(z2 - recon_z2).view(LATENT_DIM_SQRT, LATENT_DIM_SQRT))
         show_img(axs[i,9], a.view(N_ACTION_SQTR, N_ACTION_SQTR))
+
     plt.tight_layout()
-    plt.savefig("puzzle/image/{}.png".format(e))
+    plt.savefig("puzzle/image/samples/{}.png".format(e))
     plt.close(fig)
+
 
 def load_model(vae):
     vae.load_state_dict(torch.load("puzzle/model/{}.pth".format(MODEL_NAME)))
@@ -154,9 +166,9 @@ def run(n_epoch):
     for e in range(n_epoch):
         temp1 = np.maximum(TEMP_BEGIN_SAE * np.exp(-ANNEAL_RATE * e), TEMP_MIN_SAE)
         temp2 = np.maximum(TEMP_BEGIN_AAE * np.exp(-ANNEAL_RATE * e), TEMP_MIN_AAE)
-        print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
-        train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e >= 100)
-        print('====> Epoch: {} Average train loss: {:.4f}'.format(e, train_loss))
+        # print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
+        # train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e >= 100)
+        # print('====> Epoch: {} Average train loss: {:.4f}'.format(e, train_loss))
         test_loss = test(test_loader, vae, e, (temp1, temp2))
         print('====> Epoch: {} Average test loss: {:.4f}, best loss {:.4f} in epoch {}'.format(e, test_loss, best_loss, best_epoch))
         if test_loss < best_loss:
@@ -167,6 +179,7 @@ def run(n_epoch):
         scheculer.step()
 
 if __name__ == "__main__":
-    os.makedirs("puzzle/image", exist_ok=True)
+    os.makedirs("puzzle/image/actions", exist_ok=True)
+    os.makedirs("puzzle/image/samples", exist_ok=True)
     os.makedirs("puzzle/model", exist_ok=True)
     run(2000)
