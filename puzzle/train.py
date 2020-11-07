@@ -109,17 +109,17 @@ def save_image(output, b_o1, b_o2, e):
         ax.axes.yaxis.set_visible(False)
         ax.imshow(img, cmap='gray')
 
-    N_SMAPLE= 5
     b_recon_o1, b_recon_o2, b_recon_tilda, b_z1, b_z2, b_recon_z2, b_a = output
 
     all_a = torch.argmax(b_a.squeeze(), dim=-1).detach().cpu()
     fig = plt.figure()
     plt.hist(all_a, bins=N_ACTION)
-    unique_a = torch.unique(all_a).size()[0]
+    unique_a = torch.unique(all_a).shape[0]
     plt.title('Action used {}'.format(unique_a))
     plt.savefig("puzzle/image/actions/{}.png".format(e))
     plt.close(fig)
 
+    N_SMAPLE= 5
     selected = torch.randint(low=0, high=TEST_BZ, size=(N_SMAPLE,))
     pre_process = lambda img: img[selected].squeeze().detach().cpu()
 
@@ -144,6 +144,7 @@ def save_image(output, b_o1, b_o2, e):
     plt.tight_layout()
     plt.savefig("puzzle/image/samples/{}.png".format(e))
     plt.close(fig)
+    exit(0)
 
 
 def load_model(vae):
@@ -166,9 +167,9 @@ def run(n_epoch):
     for e in range(n_epoch):
         temp1 = np.maximum(TEMP_BEGIN_SAE * np.exp(-ANNEAL_RATE * e), TEMP_MIN_SAE)
         temp2 = np.maximum(TEMP_BEGIN_AAE * np.exp(-ANNEAL_RATE * e), TEMP_MIN_AAE)
-        print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
-        train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e >= 100)
-        print('====> Epoch: {} Average train loss: {:.4f}'.format(e, train_loss))
+        # print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
+        # train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e >= 100)
+        # print('====> Epoch: {} Average train loss: {:.4f}'.format(e, train_loss))
         test_loss = test(test_loader, vae, e, (temp1, temp2))
         print('====> Epoch: {} Average test loss: {:.4f}, best loss {:.4f} in epoch {}'.format(e, test_loss, best_loss, best_epoch))
         if test_loss < best_loss:
