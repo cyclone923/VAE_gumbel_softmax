@@ -5,7 +5,7 @@ from puzzle.generate_puzzle import BASE_SIZE
 
 LATENT_DIM = 6 ** 2
 CATEGORICAL_DIM = 1
-N_ACTION = 12 ** 2
+N_ACTION = 16 ** 2
 
 
 def bn_and_dpt(x, bn, dpt):

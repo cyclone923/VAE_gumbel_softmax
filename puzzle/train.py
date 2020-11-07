@@ -10,7 +10,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-
 TEMP_BEGIN_SAE = 5
 TEMP_MIN_SAE = 0.3
 TEMP_BEGIN_AAE = 5
