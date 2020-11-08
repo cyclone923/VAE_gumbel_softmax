@@ -22,7 +22,7 @@ ALPHA = 0.2
 BETA = 1
 LATENT_DIM_SQRT = int(np.sqrt(LATENT_DIM))
 N_ACTION_SQTR = int(np.sqrt(N_ACTION))
-BACK_TO_LOGIT = False
+BACK_TO_LOGIT = True
 
 if BACK_TO_LOGIT:
     print("Back to logit")
