@@ -1,15 +1,15 @@
 import torch
-import torch.nn as nn
-from puzzle.sae import CubeSae, LATENT_DIM, N_ACTION
-from puzzle.dataset import get_train_and_test_dataset, load_data, VALIDATION_EXAMPLES
-from puzzle.gumble import device
 from torch.utils.data import DataLoader
 from torch.optim import Adam
 from torch.optim.lr_scheduler import LambdaLR
 import numpy as np
-import matplotlib.pyplot as plt
 import os
 import shutil
+from puzzle.sae import CubeSae
+from puzzle.dataset import get_train_and_test_dataset, load_data
+from puzzle.gumble import device
+from puzzle.loss import total_loss
+from puzzle.util import save_action_histogram, save_image, MODEL_DIR, MODEL_PATH, IMG_DIR, BACK_TO_LOGIT
 
 TEMP_BEGIN_SAE = 5
 TEMP_MIN_SAE = 0.3
@@ -18,49 +18,8 @@ TEMP_MIN_AAE = 1
 ANNEAL_RATE = 0.03
 TRAIN_BZ = 500
 TEST_BZ = 2000
-ALPHA = 0.2
-BETA = 1
-LATENT_DIM_SQRT = int(np.sqrt(LATENT_DIM))
-N_ACTION_SQTR = int(np.sqrt(N_ACTION))
-BACK_TO_LOGIT = True
-
-if BACK_TO_LOGIT:
-    print("Back to logit")
-else:
-    print("Naive")
-
-IMG_DIR = "puzzle/image_{}".format("btl" if BACK_TO_LOGIT else "naive")
-MODEL_DIR = "puzzle/model_{}".format("btl" if BACK_TO_LOGIT else "naive")
-ACTION_DIR = os.path.join(IMG_DIR, "actions")
-SAMPLE_DIR = os.path.join(IMG_DIR, "samples")
-
-MODEL_NAME = "CubeSae"
-MODEL_PATH = os.path.join(MODEL_DIR, "{}.pth".format(MODEL_NAME))
 
 torch.manual_seed(0)
-
-# Reconstruction + zero suppressed losses summed over all elements and batch
-def rec_loss_function(recon_x, x, criterion):
-    BCE = criterion(recon_x, x).sum(dim=[i for i in range(1, x.dim())]).mean()
-    return BCE
-
-def latent_spasity(z):
-    return z.sum(dim=[i for i in range(1, z.dim())]).mean() * ALPHA
-
-def total_loss(output, o1, o2):
-    recon_o1, recon_o2, recon_o2_tilde, z1, z2, recon_z2, _, _, _ = output
-    image_loss = 0
-    latent_loss = 0
-    spasity = 0
-    image_loss += rec_loss_function(recon_o1, o1, nn.BCELoss(reduction='none'))
-    image_loss += rec_loss_function(recon_o2, o2, nn.BCELoss(reduction='none'))
-    image_loss += rec_loss_function(recon_o2_tilde, o2, nn.BCELoss(reduction='none'))
-    latent_loss += rec_loss_function(recon_z2, z2, nn.L1Loss(reduction='none'))
-    spasity += latent_spasity(z1)
-    spasity += latent_spasity(z2)
-    # spasity += latent_spasity(recon_z2)
-    return image_loss, latent_loss, spasity
-
 
 def train(dataloader, vae, optimizer, temp, add_spasity):
     vae.train()
@@ -117,67 +76,6 @@ def test(dataloader, vae, e, temp):
         ep_image_loss/len(dataloader), ep_latent_loss/len(dataloader), ep_spasity/len(dataloader), n_action)
     )
     return test_loss / len(dataloader)
-
-def save_action_histogram(all_a, e):
-    all_a = torch.argmax(all_a.squeeze(), dim=-1).detach().cpu()
-    fig = plt.figure()
-    fig.suptitle('Epoch {}'.format(e), fontsize=12)
-    plt.hist(all_a.numpy(), bins=N_ACTION)
-    unique_a = torch.unique(all_a).shape[0]
-    plt.title('Action used across test dataset of {} example: {}'.format(VALIDATION_EXAMPLES, unique_a), fontsize=8)
-    plt.savefig(os.path.join(ACTION_DIR, "{}.png".format(e)))
-    plt.close(fig)
-    return unique_a
-
-def save_image(output, b_o1, b_o2, e):
-    def show_img(ax, img, t, set_title=False):
-        ax.axes.xaxis.set_visible(False)
-        ax.axes.yaxis.set_visible(False)
-        if set_title:
-            assert t
-            ax.set_title(t, fontsize=8)
-        ax.imshow(img, cmap='gray')
-
-    b_recon_o1, b_recon_o2, b_recon_tilde, b_z1, b_z2, b_recon_z2, b_a, b_add, b_delete = output
-
-    N_SMAPLE= 5
-    selected = torch.arange(start=0, end=5)
-    pre_process = lambda img: img[selected].squeeze().detach().cpu() if img is not None else None
-
-    fig, axs = plt.subplots(N_SMAPLE, 10 + (0 if BACK_TO_LOGIT else 3))
-    fig.suptitle('Epoch {}'.format(e), fontsize=12)
-
-    for i, (o1, o2, recon_o1, recon_o2, recon_tilde, z1, z2, recon_z2, a, add, delete) in enumerate(
-        zip(*([pre_process(b_o1), pre_process(b_o2)] + [pre_process(i) for i in output]))
-    ):
-        if i == 0:
-            set_title = True
-        else:
-            set_title = False
-        show_img(axs[i,0], o1, r"$o_1$", set_title)
-        show_img(axs[i,1], recon_o1, r"$\tilde{o_1}$", set_title)
-        show_img(axs[i,2], o2, r"$o_2$", set_title)
-        show_img(axs[i,3], recon_o2, r"$\tilde{o_2}$", set_title)
-        show_img(axs[i,4], recon_tilde, r"$\tilde{\tilde{o_2}}$", set_title)
-        show_img(axs[i,5], z1.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"$z_1$", set_title)
-        show_img(axs[i,6], z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"$z_2$", set_title)
-        show_img(axs[i,7], recon_z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"$\tilde{z_2}$", set_title)
-        show_img(axs[i,8], (z2 - recon_z2).view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"$z_2 - \tilde{z_2}$", set_title)
-        if not BACK_TO_LOGIT:
-            show_img(axs[i,-4], (z2 - z1).view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"$z_2 - z1$", set_title)
-            show_img(axs[i,-3], a.view(N_ACTION_SQTR, N_ACTION_SQTR), "$add$", set_title)
-            show_img(axs[i,-2], a.view(N_ACTION_SQTR, N_ACTION_SQTR), "$delete$", set_title)
-
-        show_img(axs[i,-1], a.view(N_ACTION_SQTR, N_ACTION_SQTR), "$a$", set_title)
-
-    plt.tight_layout()
-    plt.savefig(os.path.join(SAMPLE_DIR, "{}.png".format(e)))
-    plt.close(fig)
-
-
-def load_model(vae):
-    vae.load_state_dict(torch.load(MODEL_PATH))
-    print(MODEL_PATH)
 
 def run(n_epoch):
     train_set, test_set, _, _ = get_train_and_test_dataset(*load_data())
