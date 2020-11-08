@@ -207,11 +207,12 @@ def run(n_epoch):
 
 if __name__ == "__main__":
     try:
-        shutil.rmtree('puzzle/image/')
+        shutil.rmtree(IMG_DIR)
+        shutil.rmtree(MODEL_DIR)
     except:
         pass
 
-
+    os.makedirs(MODEL_DIR)
     os.makedirs(os.path.join(IMG_DIR, "actions"), exist_ok=True)
     os.makedirs(os.path.join(IMG_DIR, "samples"), exist_ok=True)
     os.makedirs(MODEL_DIR, exist_ok=True)
