@@ -109,6 +109,7 @@ def test(dataloader, vae, e, temp=(0, 0)):
 def save_action_histogram(all_a, e):
     all_a = torch.argmax(all_a.squeeze(), dim=-1).detach().cpu()
     fig = plt.figure()
+    fig.suptitle('Epoch {}'.format(e), fontsize=12)
     plt.hist(all_a.numpy(), bins=N_ACTION)
     unique_a = torch.unique(all_a).shape[0]
     plt.title('Action used across test dataset of {} example: {}'.format(TEST_EXAMPLES, unique_a))
@@ -132,6 +133,7 @@ def save_image(output, b_o1, b_o2, e):
     pre_process = lambda img: img[selected].squeeze().detach().cpu()
 
     fig, axs = plt.subplots(N_SMAPLE, 10)
+    fig.suptitle('Epoch {}'.format(e), fontsize=12)
 
     for i, (o1, recon_o1, o2, recon_o2, recon_tilde, z1, z2, recon_z2, a) in enumerate(
         zip(
