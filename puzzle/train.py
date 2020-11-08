@@ -12,7 +12,7 @@ import os
 import shutil
 
 TEMP_BEGIN_SAE = 5
-TEMP_MIN_SAE = 1
+TEMP_MIN_SAE = 0.3
 TEMP_BEGIN_AAE = 5
 TEMP_MIN_AAE = 1.4
 ANNEAL_RATE = 0.01
