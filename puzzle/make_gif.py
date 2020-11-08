@@ -1,11 +1,9 @@
 import imageio
 import os
-
-dir1 = "image/samples"
-dir2 = "image/actions"
+from puzzle.train import SAMPLE_DIR, ACTION_DIR
 
 
-for dir, out_name in zip([dir1, dir2], ["samples", "actions"]):
+for dir, out_name in zip([SAMPLE_DIR, ACTION_DIR], ["samples", "actions"]):
     images = []
     for filename in sorted(os.listdir(dir), key=lambda x: int(x.split(".")[0])):
         images.append(imageio.imread(os.path.join(dir, filename)))
