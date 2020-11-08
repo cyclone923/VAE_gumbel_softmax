@@ -10,6 +10,7 @@ Pytorch implementation of a Variational Autoencoder with Gumbel-Softmax Distribu
 * [Ananconda](#anaconda)
 * [Results](#results)
 
+
 ## Installation
 
 The program requires the following dependencies (easy to install using pip or Ananconda):

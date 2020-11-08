@@ -1,8 +1,8 @@
+import torch
+import torch.nn as nn
 from puzzle.sae import CubeSae, LATENT_DIM, N_ACTION
 from puzzle.dataset import get_train_and_test_dataset, load_data, TEST_EXAMPLES
 from puzzle.gumble import device
-import torch
-import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.optim import Adam
 from torch.optim.lr_scheduler import LambdaLR
@@ -30,7 +30,6 @@ torch.manual_seed(0)
 # Reconstruction + zero suppressed losses summed over all elements and batch
 def rec_loss_function(recon_x, x, criterion):
     BCE = criterion(recon_x, x).sum(dim=[i for i in range(1, x.dim())]).mean()
-    # sparsity = latent_z.sum(dim=[i for i in range(1, latent_z.dim())]).mean()
     return BCE
 
 def latent_spasity(z):
@@ -99,6 +98,7 @@ def test(dataloader, vae, e, temp=(0, 0)):
             if i == 0:
                 save_image(output, o1, o2, e)
             all_a.append(output[-1])
+            break
         n_action = save_action_histogram(torch.cat(all_a, dim=0), e)
 
     print("TESTING LOSS REC_IMG: {:.3f}, REC_LATENT: {:.3f}, SPASITY_LATENT: {:.3f}, {} ACTIONS USED".format(
@@ -107,7 +107,6 @@ def test(dataloader, vae, e, temp=(0, 0)):
     return test_loss / len(dataloader)
 
 def save_action_histogram(all_a, e):
-
     all_a = torch.argmax(all_a.squeeze(), dim=-1).detach().cpu()
     fig = plt.figure()
     plt.hist(all_a.numpy(), bins=N_ACTION)
@@ -129,7 +128,7 @@ def save_image(output, b_o1, b_o2, e):
     b_recon_o1, b_recon_o2, b_recon_tilde, b_z1, b_z2, b_recon_z2, b_a = output
 
     N_SMAPLE= 5
-    selected = torch.randint(low=0, high=TEST_BZ, size=(N_SMAPLE,))
+    selected = torch.arange(start=0, end=5)
     pre_process = lambda img: img[selected].squeeze().detach().cpu()
 
     fig, axs = plt.subplots(N_SMAPLE, 10)
@@ -169,8 +168,8 @@ def run(n_epoch):
     print("Training Examples: {}, Testing Examples: {}".format(len(train_set), len(test_set)))
     assert len(train_set) % TRAIN_BZ == 0
     assert len(test_set) % TEST_BZ == 0
-    train_loader = DataLoader(train_set, batch_size=TRAIN_BZ, shuffle=True, num_workers=4)
-    test_loader = DataLoader(test_set, batch_size=TEST_BZ, shuffle=False, num_workers=4)
+    train_loader = DataLoader(train_set, batch_size=TRAIN_BZ, shuffle=True)
+    test_loader = DataLoader(test_set, batch_size=TEST_BZ, shuffle=False)
     vae = CubeSae().to(device)
     # load_model(vae)
     optimizer = Adam(vae.parameters(), lr=1e-3)
@@ -201,4 +200,4 @@ if __name__ == "__main__":
     os.makedirs("puzzle/image/actions", exist_ok=True)
     os.makedirs("puzzle/image/samples", exist_ok=True)
     os.makedirs("puzzle/model", exist_ok=True)
-    run(3000)
+    run(5)

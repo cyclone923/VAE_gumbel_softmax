@@ -1,5 +1,5 @@
 import numpy as np
-from puzzle.generate_puzzle import PUZZLE_FILE, SUCCESOR_FILE, MAX_SUCCESSOR
+from puzzle.generate_puzzle import PUZZLE_FILE, SUCCESOR_FILE
 from torch.utils.data import Dataset, DataLoader, random_split
 import sys
 import matplotlib.pyplot as plt
