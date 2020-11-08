@@ -89,7 +89,7 @@ def train(dataloader, vae, optimizer, temp, add_spasity):
     )
     return train_loss / len(dataloader)
 
-def test(dataloader, vae, e, temp=(0, 0)):
+def test(dataloader, vae, e, temp):
     vae.eval()
     test_loss = 0
     ep_image_loss, ep_latent_loss, ep_spasity = 0, 0, 0
