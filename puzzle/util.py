@@ -74,8 +74,8 @@ def save_image(output, b_o1, b_o2, e):
         show_img(axs[i,8], (z2 - recon_z2).view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"$z_2 - \tilde{z_2}$", set_title)
         if not BACK_TO_LOGIT:
             show_img(axs[i,-4], (z2 - z1).view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"$z_2 - z1$", set_title)
-            show_img(axs[i,-3], a.view(N_ACTION_SQTR, N_ACTION_SQTR), "$add$", set_title)
-            show_img(axs[i,-2], a.view(N_ACTION_SQTR, N_ACTION_SQTR), "$delete$", set_title)
+            show_img(axs[i,-3], add.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), "$add$", set_title)
+            show_img(axs[i,-2], delete.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), "$delete$", set_title)
 
         show_img(axs[i,-1], a.view(N_ACTION_SQTR, N_ACTION_SQTR), "$a$", set_title)
 
