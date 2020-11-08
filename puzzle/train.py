@@ -189,8 +189,10 @@ def run(n_epoch):
         scheculer.step()
 
 if __name__ == "__main__":
-
-    shutil.rmtree('puzzle/image/')
+    try:
+        shutil.rmtree('puzzle/image/')
+    except:
+        pass
 
     os.makedirs("puzzle/image/actions", exist_ok=True)
     os.makedirs("puzzle/image/samples", exist_ok=True)
