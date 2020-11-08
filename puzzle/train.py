@@ -15,7 +15,7 @@ TEMP_BEGIN_SAE = 5
 TEMP_MIN_SAE = 0.7
 TEMP_BEGIN_AAE = 5
 TEMP_MIN_AAE = 0.7
-ANNEAL_RATE = 0.003
+ANNEAL_RATE = 0.01
 TRAIN_BZ = 2000
 TEST_BZ = 2000
 ALPHA = 1
@@ -118,9 +118,10 @@ def save_action_histogram(all_a, e):
     return unique_a
 
 def save_image(output, b_o1, b_o2, e):
-    def show_img(ax, img):
+    def show_img(ax, img, t):
         ax.axes.xaxis.set_visible(False)
         ax.axes.yaxis.set_visible(False)
+        ax.title(t)
         ax.imshow(img, cmap='gray')
 
     b_recon_o1, b_recon_o2, b_recon_tilda, b_z1, b_z2, b_recon_z2, b_a = output
@@ -130,22 +131,24 @@ def save_image(output, b_o1, b_o2, e):
     pre_process = lambda img: img[selected].squeeze().detach().cpu()
 
     fig, axs = plt.subplots(N_SMAPLE, 10)
+    titles = ["Pre", "Pre_recon", "Suc", "Suc_recon1", "Suc_recon2", "Pre_z", "Suc_z", "Suc_recon_z", "Abs(Suc_z - Suc_recon_z)", "a"]
     for i, (o1, recon_o1, o2, recon_o2, recon_tilda, z1, z2, recon_z2, a) in enumerate(
         zip(
             pre_process(b_o1), pre_process(b_recon_o1), pre_process(b_o2), pre_process(b_recon_o2),
             pre_process(b_recon_tilda), pre_process(b_z1), pre_process(b_z2), pre_process(b_recon_z2), pre_process(b_a)
         )
     ):
-        show_img(axs[i,0], o1)
-        show_img(axs[i,1], recon_o1)
-        show_img(axs[i,2], o2)
-        show_img(axs[i,3], recon_o2)
-        show_img(axs[i,4], recon_tilda)
-        show_img(axs[i,5], z1.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT))
-        show_img(axs[i,6], z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT))
-        show_img(axs[i,7], recon_z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT))
-        show_img(axs[i,8], torch.abs(z2 - recon_z2).view(LATENT_DIM_SQRT, LATENT_DIM_SQRT))
-        show_img(axs[i,9], a.view(N_ACTION_SQTR, N_ACTION_SQTR))
+        t = titles[i] if i == 0 else None
+        show_img(axs[i,0], o1, t)
+        show_img(axs[i,1], recon_o1, t)
+        show_img(axs[i,2], o2, t)
+        show_img(axs[i,3], recon_o2, t)
+        show_img(axs[i,4], recon_tilda, t)
+        show_img(axs[i,5], z1.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), t)
+        show_img(axs[i,6], z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), t)
+        show_img(axs[i,7], recon_z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), t)
+        show_img(axs[i,8], torch.abs(z2 - recon_z2).view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), t)
+        show_img(axs[i,9], a.view(N_ACTION_SQTR, N_ACTION_SQTR), t)
 
     plt.tight_layout()
     plt.savefig("puzzle/image/samples/{}.png".format(e))
