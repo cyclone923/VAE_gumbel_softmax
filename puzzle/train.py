@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from puzzle.sae import CubeSae, LATENT_DIM, N_ACTION
-from puzzle.dataset import get_train_and_test_dataset, load_data, TEST_EXAMPLES
+from puzzle.dataset import get_train_and_test_dataset, load_data, VALIDATION_EXAMPLES
 from puzzle.gumble import device
 from torch.utils.data import DataLoader
 from torch.optim import Adam
@@ -112,7 +112,7 @@ def save_action_histogram(all_a, e):
     fig.suptitle('Epoch {}'.format(e), fontsize=12)
     plt.hist(all_a.numpy(), bins=N_ACTION)
     unique_a = torch.unique(all_a).shape[0]
-    plt.title('Action used across test dataset of {} example: {}'.format(TEST_EXAMPLES, unique_a))
+    plt.title('Action used across test dataset of {} example: {}'.format(VALIDATION_EXAMPLES, unique_a), fontsize=8)
     plt.savefig("puzzle/image/actions/{}.png".format(e))
     plt.close(fig)
     return unique_a
