@@ -144,16 +144,16 @@ def save_image(output, b_o1, b_o2, e):
             set_title = True
         else:
             set_title = False
-        show_img(axs[i,0], o1, r"o_1", set_title)
-        show_img(axs[i,1], recon_o1, r"\tilde{o_1}", set_title)
-        show_img(axs[i,2], o2, r"o_2", set_title)
-        show_img(axs[i,3], recon_o2, r"\tilde{o_2}", set_title)
-        show_img(axs[i,4], recon_tilde, r"\tilde{\tilde{o_2}}", set_title)
-        show_img(axs[i,5], z1.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"z_1", set_title)
-        show_img(axs[i,6], z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"z_2", set_title)
-        show_img(axs[i,7], recon_z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"\tilde{z_2}", set_title)
-        show_img(axs[i,8], torch.abs(z2 - recon_z2).view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"abs(z_2 - \tilde{z_2})", set_title)
-        show_img(axs[i,9], a.view(N_ACTION_SQTR, N_ACTION_SQTR), "a", set_title)
+        show_img(axs[i,0], o1, r"$o_1$", set_title)
+        show_img(axs[i,1], recon_o1, r"$\tilde{o_1}$", set_title)
+        show_img(axs[i,2], o2, r"$o_2$", set_title)
+        show_img(axs[i,3], recon_o2, r"$\tilde{o_2}$", set_title)
+        show_img(axs[i,4], recon_tilde, r"$\tilde{\tilde{o_2}}$", set_title)
+        show_img(axs[i,5], z1.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"$z_1$", set_title)
+        show_img(axs[i,6], z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"$z_2$", set_title)
+        show_img(axs[i,7], recon_z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"$\tilde{z_2}$", set_title)
+        show_img(axs[i,8], (z2 - recon_z2).view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"$z_2 - \tilde{z_2}$", set_title)
+        show_img(axs[i,9], a.view(N_ACTION_SQTR, N_ACTION_SQTR), "$a$", set_title)
 
     plt.tight_layout()
     plt.savefig("puzzle/image/samples/{}.png".format(e))
@@ -170,7 +170,7 @@ def run(n_epoch):
     assert len(train_set) % TRAIN_BZ == 0
     assert len(test_set) % TEST_BZ == 0
     train_loader = DataLoader(train_set, batch_size=TRAIN_BZ, shuffle=True, num_workers=4)
-    test_loader = DataLoader(test_set, batch_size=TEST_BZ, shuffle=True, num_workers=4)
+    test_loader = DataLoader(test_set, batch_size=TEST_BZ, shuffle=False, num_workers=4)
     vae = CubeSae().to(device)
     # load_model(vae)
     optimizer = Adam(vae.parameters(), lr=1e-3)
