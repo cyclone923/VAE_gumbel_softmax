@@ -175,7 +175,7 @@ def run(n_epoch):
     vae = CubeSae().to(device)
     # load_model(vae)
     optimizer = Adam(vae.parameters(), lr=1e-3)
-    scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 1000 else 0.1)
+    scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 200 else (0.1 if e < 500 else 0.01))
     best_loss = float('inf')
     best_epoch = 0
     for e in range(n_epoch):
