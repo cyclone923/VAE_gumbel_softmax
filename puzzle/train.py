@@ -37,13 +37,13 @@ def latent_spasity(z):
     return z.sum(dim=[i for i in range(1, z.dim())]).mean() * ALPHA
 
 def total_loss(output, o1, o2):
-    recon_o1, recon_o2, recon_o2_tilda, z1, z2, recon_z2, _ = output
+    recon_o1, recon_o2, recon_o2_tilde, z1, z2, recon_z2, _ = output
     image_loss = 0
     latent_loss = 0
     spasity = 0
     image_loss += rec_loss_function(recon_o1, o1, nn.BCELoss(reduction='none'))
     image_loss += rec_loss_function(recon_o2, o2, nn.BCELoss(reduction='none'))
-    image_loss += rec_loss_function(recon_o2_tilda, o2, nn.BCELoss(reduction='none'))
+    image_loss += rec_loss_function(recon_o2_tilde, o2, nn.BCELoss(reduction='none'))
     latent_loss += rec_loss_function(recon_z2, z2, nn.L1Loss(reduction='none')) * BETA
     spasity += latent_spasity(z1)
     spasity += latent_spasity(z2)
@@ -126,7 +126,7 @@ def save_image(output, b_o1, b_o2, e):
             ax.title.set_text(t)
         ax.imshow(img, cmap='gray')
 
-    b_recon_o1, b_recon_o2, b_recon_tilda, b_z1, b_z2, b_recon_z2, b_a = output
+    b_recon_o1, b_recon_o2, b_recon_tilde, b_z1, b_z2, b_recon_z2, b_a = output
 
     N_SMAPLE= 5
     selected = torch.randint(low=0, high=TEST_BZ, size=(N_SMAPLE,))
@@ -134,24 +134,25 @@ def save_image(output, b_o1, b_o2, e):
 
     fig, axs = plt.subplots(N_SMAPLE, 10)
 
-    set_title = False
-    for i, (o1, recon_o1, o2, recon_o2, recon_tilda, z1, z2, recon_z2, a) in enumerate(
+    for i, (o1, recon_o1, o2, recon_o2, recon_tilde, z1, z2, recon_z2, a) in enumerate(
         zip(
             pre_process(b_o1), pre_process(b_recon_o1), pre_process(b_o2), pre_process(b_recon_o2),
-            pre_process(b_recon_tilda), pre_process(b_z1), pre_process(b_z2), pre_process(b_recon_z2), pre_process(b_a)
+            pre_process(b_recon_tilde), pre_process(b_z1), pre_process(b_z2), pre_process(b_recon_z2), pre_process(b_a)
         )
     ):
         if i == 0:
             set_title = True
-        show_img(axs[i,0], o1, "Pre", set_title)
-        show_img(axs[i,1], recon_o1, "Pre_recon", set_title)
-        show_img(axs[i,2], o2, "Suc", set_title)
-        show_img(axs[i,3], recon_o2, "Suc_recon1", set_title)
-        show_img(axs[i,4], recon_tilda, "Suc_recon2", set_title)
-        show_img(axs[i,5], z1.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), "Pre_z", set_title)
-        show_img(axs[i,6], z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), "Suc_z", set_title)
-        show_img(axs[i,7], recon_z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), "Suc_recon_z", set_title)
-        show_img(axs[i,8], torch.abs(z2 - recon_z2).view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), "Abs(Suc_z - Suc_recon_z)", set_title)
+        else:
+            set_title = False
+        show_img(axs[i,0], o1, r"o_1", set_title)
+        show_img(axs[i,1], recon_o1, r"\tilde{o_1}", set_title)
+        show_img(axs[i,2], o2, r"o_2", set_title)
+        show_img(axs[i,3], recon_o2, r"\tilde{o_2}", set_title)
+        show_img(axs[i,4], recon_tilde, r"\tilde{\tilde{o_2}}", set_title)
+        show_img(axs[i,5], z1.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"z_1", set_title)
+        show_img(axs[i,6], z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"z_2", set_title)
+        show_img(axs[i,7], recon_z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"\tilde{z_2}", set_title)
+        show_img(axs[i,8], torch.abs(z2 - recon_z2).view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"abs(z_2 - \tilde{z_2})", set_title)
         show_img(axs[i,9], a.view(N_ACTION_SQTR, N_ACTION_SQTR), "a", set_title)
 
     plt.tight_layout()
