@@ -123,7 +123,7 @@ def save_image(output, b_o1, b_o2, e):
         ax.axes.yaxis.set_visible(False)
         if set_title:
             assert t
-            ax.title.set_text(t)
+            ax.title.set_text(t, fontsize=8)
         ax.imshow(img, cmap='gray')
 
     b_recon_o1, b_recon_o2, b_recon_tilde, b_z1, b_z2, b_recon_z2, b_a = output
