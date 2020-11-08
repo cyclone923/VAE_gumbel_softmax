@@ -121,7 +121,8 @@ def save_image(output, b_o1, b_o2, e):
     def show_img(ax, img, t):
         ax.axes.xaxis.set_visible(False)
         ax.axes.yaxis.set_visible(False)
-        ax.title(t)
+        if t:
+            ax.title.set_text(t)
         ax.imshow(img, cmap='gray')
 
     b_recon_o1, b_recon_o2, b_recon_tilda, b_z1, b_z2, b_recon_z2, b_a = output
