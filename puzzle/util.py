@@ -51,13 +51,13 @@ def save_image(output, b_o1, b_o2, e):
     fig, axs = plt.subplots(N_SMAPLE, 10 + (0 if BACK_TO_LOGIT else 3))
     fig.suptitle('Epoch {}'.format(e), fontsize=12)
 
-    for i, signle in enumerate(
+    for i, single in enumerate(
             zip(*([pre_process(b_o1), pre_process(b_o2)] + [pre_process(i) for i in output if i is not None]))
     ):
         if BACK_TO_LOGIT:
-            o1, o2, recon_o1, recon_o2, recon_tilde, z1, z2, recon_z2, a = output
+            o1, o2, recon_o1, recon_o2, recon_tilde, z1, z2, recon_z2, a = single
         else:
-            o1, o2, recon_o1, recon_o2, recon_tilde, z1, z2, recon_z2, a, add, delete = output
+            o1, o2, recon_o1, recon_o2, recon_tilde, z1, z2, recon_z2, a, add, delete = single
 
         if i == 0:
             set_title = True
