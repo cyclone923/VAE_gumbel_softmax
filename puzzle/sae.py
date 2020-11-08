@@ -88,11 +88,14 @@ class Aae(nn.Module):
         h5 = bn_and_dpt(torch.relu(self.fc5(h4)), self.bn5, self.dpt5)
         h6 = self.fc6(h5)
 
+
         if self.back_to_logit:
             h6 = h6.view(-1, LATENT_DIM, 1)
             s = self.bn_input(s)
             h6 = self.bn_effect(h6)
             s = gumbel_softmax(h6+s, temp)
+            add = None
+            delete = None
         else:
             h6 = h6.view(-1, LATENT_DIM, 3)
             h6 = gumbel_softmax(h6, temp)
@@ -101,13 +104,12 @@ class Aae(nn.Module):
             s = torch.max(s, add)
             s = torch.min(s, 1-delete)
 
-        return s
-
+        return s, add, delete
 
     def forward(self, s, z, temp):
         a = self.encode(s, z, temp)
-        recon_z = self.decode(s, a, temp)
-        return recon_z, a
+        recon_z, add, delete = self.decode(s, a, temp)
+        return recon_z, a, add, delete
 
 
 class CubeSae(nn.Module):
@@ -120,6 +122,6 @@ class CubeSae(nn.Module):
         temp1, temp2 = temp
         recon_o1, z1 = self.sae(o1, temp1)
         recon_o2, z2 = self.sae(o2, temp1)
-        z_recon, a = self.aae(z1, z2, temp2)
+        z_recon, a, add, delete = self.aae(z1, z2, temp2)
         recon_o2_tilda = self.sae.decode(z_recon)
-        return recon_o1, recon_o2, recon_o2_tilda, z1, z2, z_recon, a
+        return recon_o1, recon_o2, recon_o2_tilda, z1, z2, z_recon, a, add, delete

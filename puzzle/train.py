@@ -48,7 +48,7 @@ def latent_spasity(z):
     return z.sum(dim=[i for i in range(1, z.dim())]).mean() * ALPHA
 
 def total_loss(output, o1, o2):
-    recon_o1, recon_o2, recon_o2_tilde, z1, z2, recon_z2, _ = output
+    recon_o1, recon_o2, recon_o2_tilde, z1, z2, recon_z2, _, _, _ = output
     image_loss = 0
     latent_loss = 0
     spasity = 0
@@ -109,7 +109,7 @@ def test(dataloader, vae, e, temp=(0, 0)):
             test_loss += loss.item()
             if i == 0:
                 save_image(output, o1+ noise1, o2+ noise1, e)
-            all_a.append(output[-1])
+            all_a.append(output[-3])
             break
         n_action = save_action_histogram(torch.cat(all_a, dim=0), e)
 
@@ -138,20 +138,17 @@ def save_image(output, b_o1, b_o2, e):
             ax.set_title(t, fontsize=8)
         ax.imshow(img, cmap='gray')
 
-    b_recon_o1, b_recon_o2, b_recon_tilde, b_z1, b_z2, b_recon_z2, b_a = output
+    b_recon_o1, b_recon_o2, b_recon_tilde, b_z1, b_z2, b_recon_z2, b_a, b_add, b_delete = output
 
     N_SMAPLE= 5
     selected = torch.arange(start=0, end=5)
-    pre_process = lambda img: img[selected].squeeze().detach().cpu()
+    pre_process = lambda img: img[selected].squeeze().detach().cpu() if img else None
 
-    fig, axs = plt.subplots(N_SMAPLE, 10)
+    fig, axs = plt.subplots(N_SMAPLE, 10 + (0 if BACK_TO_LOGIT else 2))
     fig.suptitle('Epoch {}'.format(e), fontsize=12)
 
-    for i, (o1, recon_o1, o2, recon_o2, recon_tilde, z1, z2, recon_z2, a) in enumerate(
-        zip(
-            pre_process(b_o1), pre_process(b_recon_o1), pre_process(b_o2), pre_process(b_recon_o2),
-            pre_process(b_recon_tilde), pre_process(b_z1), pre_process(b_z2), pre_process(b_recon_z2), pre_process(b_a)
-        )
+    for i, (o1, recon_o1, o2, recon_o2, recon_tilde, z1, z2, recon_z2, a, add, delete) in enumerate(
+        zip([pre_process(i) for i in output])
     ):
         if i == 0:
             set_title = True
@@ -166,7 +163,11 @@ def save_image(output, b_o1, b_o2, e):
         show_img(axs[i,6], z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"$z_2$", set_title)
         show_img(axs[i,7], recon_z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"$\tilde{z_2}$", set_title)
         show_img(axs[i,8], (z2 - recon_z2).view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"$z_2 - \tilde{z_2}$", set_title)
-        show_img(axs[i,9], a.view(N_ACTION_SQTR, N_ACTION_SQTR), "$a$", set_title)
+        if not BACK_TO_LOGIT:
+            show_img(axs[i,-3], a.view(N_ACTION_SQTR, N_ACTION_SQTR), "$add$", set_title)
+            show_img(axs[i,-2], a.view(N_ACTION_SQTR, N_ACTION_SQTR), "$delete$", set_title)
+
+        show_img(axs[i,-1], a.view(N_ACTION_SQTR, N_ACTION_SQTR), "$a$", set_title)
 
     plt.tight_layout()
     plt.savefig(os.path.join(SAMPLE_DIR, "{}.png".format(e)))
