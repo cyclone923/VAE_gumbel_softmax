@@ -89,7 +89,7 @@ def test(dataloader, vae, e, temp=(0, 0)):
             noise1 = torch.normal(mean=0, std=0.4, size=o1.size()).to(device)
             noise2 = torch.normal(mean=0, std=0.4, size=o2.size()).to(device)
             output = vae(o1 + noise1, o2 + noise2, temp)
-            image_loss, latent_loss, spasity = total_loss(output, o1, o2)
+            image_loss, latent_loss, spasity = total_loss(output, o1 + noise1, o2 + noise2)
             ep_image_loss += image_loss.item()
             ep_latent_loss += latent_loss.item()
             ep_spasity += spasity.item()
