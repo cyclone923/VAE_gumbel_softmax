@@ -142,7 +142,7 @@ def save_image(output, b_o1, b_o2, e):
 
     N_SMAPLE= 5
     selected = torch.arange(start=0, end=5)
-    pre_process = lambda img: img[selected].squeeze().detach().cpu() if img else None
+    pre_process = lambda img: img[selected].squeeze().detach().cpu() if img is not None else None
 
     fig, axs = plt.subplots(N_SMAPLE, 10 + (0 if BACK_TO_LOGIT else 2))
     fig.suptitle('Epoch {}'.format(e), fontsize=12)
