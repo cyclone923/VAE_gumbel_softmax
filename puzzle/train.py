@@ -14,9 +14,9 @@ import shutil
 TEMP_BEGIN_SAE = 5
 TEMP_MIN_SAE = 0.3
 TEMP_BEGIN_AAE = 5
-TEMP_MIN_AAE = 1.4
-ANNEAL_RATE = 0.01
-TRAIN_BZ = 2000
+TEMP_MIN_AAE = 1
+ANNEAL_RATE = 0.03
+TRAIN_BZ = 500
 TEST_BZ = 2000
 ALPHA = 0.2
 BETA = 1
@@ -175,14 +175,14 @@ def run(n_epoch):
     vae = CubeSae().to(device)
     # load_model(vae)
     optimizer = Adam(vae.parameters(), lr=1e-3)
-    scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 200 else (0.1 if e < 500 else 0.01))
+    scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 200 else 0.1)
     best_loss = float('inf')
     best_epoch = 0
     for e in range(n_epoch):
         temp1 = np.maximum(TEMP_BEGIN_SAE * np.exp(-ANNEAL_RATE * e), TEMP_MIN_SAE)
         temp2 = np.maximum(TEMP_BEGIN_AAE * np.exp(-ANNEAL_RATE * e), TEMP_MIN_AAE)
         print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
-        train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e >= 100)
+        train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e >= 50)
         print('====> Epoch: {} Average train loss: {:.4f}'.format(e, train_loss))
         test_loss = test(test_loader, vae, e, (0, 0))
         print('====> Epoch: {} Average test loss: {:.4f}, best loss {:.4f} in epoch {}'.format(e, test_loss, best_loss, best_epoch))
