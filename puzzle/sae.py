@@ -50,7 +50,7 @@ class Sae(nn.Module):
 
 # Back-to-logits implementation
 class Aae(nn.Module):
-    def __init__(self):
+    def __init__(self, back_to_logit=True):
         super(Aae, self).__init__()
         self.fc1 = nn.Linear(in_features=LATENT_DIM + LATENT_DIM, out_features=400)
         self.bn1 = nn.BatchNorm1d(num_features=1)
@@ -66,10 +66,14 @@ class Aae(nn.Module):
         self.fc5 = nn.Linear(in_features=400, out_features=400)
         self.bn5 = nn.BatchNorm1d(num_features=1)
         self.dpt5 = nn.Dropout(0.4)
-        self.fc6 = nn.Linear(in_features=400, out_features=LATENT_DIM)
 
-        self.bn_input = nn.BatchNorm1d(num_features=LATENT_DIM)
-        self.bn_effect = nn.BatchNorm1d(num_features=LATENT_DIM)
+        self.back_to_logit = back_to_logit
+        if self.back_to_logit:
+            self.fc6 = nn.Linear(in_features=400, out_features=LATENT_DIM)
+            self.bn_input = nn.BatchNorm1d(num_features=LATENT_DIM)
+            self.bn_effect = nn.BatchNorm1d(num_features=LATENT_DIM)
+        else:
+            self.fc6 = nn.Linear(in_features=400, out_features=LATENT_DIM * 3)
 
     def encode(self, s, z, temp):
         s = torch.flatten(s, start_dim=1).unsqueeze(1)
@@ -80,12 +84,25 @@ class Aae(nn.Module):
         return gumbel_softmax(h3.view(-1, 1, N_ACTION), temp)
 
     def decode(self, s, a, temp):
-        s = self.bn_input(s)
         h4 = bn_and_dpt(torch.relu(self.fc4(a)), self.bn4, self.dpt4)
         h5 = bn_and_dpt(torch.relu(self.fc5(h4)), self.bn5, self.dpt5)
         h6 = self.fc6(h5)
-        h6 = self.bn_effect(h6.view(-1, LATENT_DIM, 1))
-        return gumbel_softmax(h6+s, temp)
+
+        if self.back_to_logit:
+            h6 = h6.view(-1, LATENT_DIM, 1)
+            s = self.bn_input(s)
+            h6 = self.bn_effect(h6)
+            s = gumbel_softmax(h6+s, temp)
+        else:
+            h6 = h6.view(-1, LATENT_DIM, 3)
+            h6 = gumbel_softmax(h6, temp)
+            add = h6[:,:[0]]
+            delete = h6[:,:[1]]
+            s = torch.max(s, add)
+            s = torch.min(s, 1-delete)
+
+        return s
+
 
     def forward(self, s, z, temp):
         a = self.encode(s, z, temp)
@@ -94,10 +111,10 @@ class Aae(nn.Module):
 
 
 class CubeSae(nn.Module):
-    def __init__(self):
+    def __init__(self, btl):
         super(CubeSae, self).__init__()
         self.sae = Sae()
-        self.aae = Aae()
+        self.aae = Aae(back_to_logit=btl)
 
     def forward(self, o1, o2, temp):
         temp1, temp2 = temp

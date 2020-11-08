@@ -18,12 +18,24 @@ TEMP_MIN_AAE = 1
 ANNEAL_RATE = 0.03
 TRAIN_BZ = 500
 TEST_BZ = 2000
-ALPHA = 0.02
+ALPHA = 0.2
 BETA = 1
 LATENT_DIM_SQRT = int(np.sqrt(LATENT_DIM))
 N_ACTION_SQTR = int(np.sqrt(N_ACTION))
+BACK_TO_LOGIT = True
+
+if BACK_TO_LOGIT:
+    print("Back to logit")
+else:
+    print("Naive")
+
+IMG_DIR = "puzzle/image_{}".format("btl" if BACK_TO_LOGIT else "naive")
+MODEL_DIR = "puzzle/model_{}".format("btl" if BACK_TO_LOGIT else "naive")
+ACTION_DIR = os.path.join(IMG_DIR, "actions")
+SAMPLE_DIR = os.path.join(IMG_DIR, "samples")
 
 MODEL_NAME = "CubeSae"
+MODEL_PATH = os.path.join(MODEL_DIR, "{}.pth".format(MODEL_NAME))
 
 torch.manual_seed(0)
 
@@ -33,7 +45,7 @@ def rec_loss_function(recon_x, x, criterion):
     return BCE
 
 def latent_spasity(z):
-    return z.square().sum(dim=[i for i in range(1, z.dim())]).mean() * ALPHA
+    return z.sum(dim=[i for i in range(1, z.dim())]).mean() * ALPHA
 
 def total_loss(output, o1, o2):
     recon_o1, recon_o2, recon_o2_tilde, z1, z2, recon_z2, _ = output
@@ -43,7 +55,7 @@ def total_loss(output, o1, o2):
     image_loss += rec_loss_function(recon_o1, o1, nn.BCELoss(reduction='none'))
     image_loss += rec_loss_function(recon_o2, o2, nn.BCELoss(reduction='none'))
     image_loss += rec_loss_function(recon_o2_tilde, o2, nn.BCELoss(reduction='none'))
-    latent_loss += rec_loss_function(recon_z2, z2, nn.MSELoss(reduction='none')) * BETA
+    latent_loss += rec_loss_function(recon_z2, z2, nn.L1Loss(reduction='none'))
     spasity += latent_spasity(z1)
     spasity += latent_spasity(z2)
     # spasity += latent_spasity(recon_z2)
@@ -113,7 +125,7 @@ def save_action_histogram(all_a, e):
     plt.hist(all_a.numpy(), bins=N_ACTION)
     unique_a = torch.unique(all_a).shape[0]
     plt.title('Action used across test dataset of {} example: {}'.format(VALIDATION_EXAMPLES, unique_a), fontsize=8)
-    plt.savefig("puzzle/image/actions/{}.png".format(e))
+    plt.savefig(os.path.join(ACTION_DIR, "{}.png".format(e)))
     plt.close(fig)
     return unique_a
 
@@ -157,13 +169,13 @@ def save_image(output, b_o1, b_o2, e):
         show_img(axs[i,9], a.view(N_ACTION_SQTR, N_ACTION_SQTR), "$a$", set_title)
 
     plt.tight_layout()
-    plt.savefig("puzzle/image/samples/{}.png".format(e))
+    plt.savefig(os.path.join(SAMPLE_DIR, "{}.png".format(e)))
     plt.close(fig)
 
 
 def load_model(vae):
-    vae.load_state_dict(torch.load("puzzle/model/{}.pth".format(MODEL_NAME)))
-    print("puzzle/model/{}.pth loaded".format(MODEL_NAME))
+    vae.load_state_dict(torch.load(MODEL_PATH))
+    print(MODEL_PATH)
 
 def run(n_epoch):
     train_set, test_set, _, _ = get_train_and_test_dataset(*load_data())
@@ -172,7 +184,7 @@ def run(n_epoch):
     assert len(test_set) % TEST_BZ == 0
     train_loader = DataLoader(train_set, batch_size=TRAIN_BZ, shuffle=True)
     test_loader = DataLoader(test_set, batch_size=TEST_BZ, shuffle=False)
-    vae = CubeSae().to(device)
+    vae = CubeSae(BACK_TO_LOGIT).to(device)
     # load_model(vae)
     optimizer = Adam(vae.parameters(), lr=1e-3)
     scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 200 else 1)
@@ -184,11 +196,11 @@ def run(n_epoch):
         print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
         train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e >= 50)
         print('====> Epoch: {} Average train loss: {:.4f}'.format(e, train_loss))
-        test_loss = test(test_loader, vae, e, (0, 0))
+        test_loss = test(test_loader, vae, e, (temp1, temp2))
         print('====> Epoch: {} Average test loss: {:.4f}, best loss {:.4f} in epoch {}'.format(e, test_loss, best_loss, best_epoch))
         if test_loss < best_loss:
             print("Save Model")
-            torch.save(vae.state_dict(), "puzzle/model/{}.pth".format(MODEL_NAME))
+            torch.save(vae.state_dict(), MODEL_PATH)
             best_loss = test_loss
             best_epoch = e
         scheculer.step()
@@ -199,7 +211,8 @@ if __name__ == "__main__":
     except:
         pass
 
-    os.makedirs("puzzle/image/actions", exist_ok=True)
-    os.makedirs("puzzle/image/samples", exist_ok=True)
-    os.makedirs("puzzle/model", exist_ok=True)
+
+    os.makedirs(os.path.join(IMG_DIR, "actions"), exist_ok=True)
+    os.makedirs(os.path.join(IMG_DIR, "samples"), exist_ok=True)
+    os.makedirs(MODEL_DIR, exist_ok=True)
     run(3000)
