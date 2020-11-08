@@ -33,7 +33,7 @@ def rec_loss_function(recon_x, x, criterion):
     return BCE
 
 def latent_spasity(z):
-    return z.sum(dim=[i for i in range(1, z.dim())]).mean() * ALPHA
+    return z.square().sum(dim=[i for i in range(1, z.dim())]).mean() * ALPHA
 
 def total_loss(output, o1, o2):
     recon_o1, recon_o2, recon_o2_tilde, z1, z2, recon_z2, _ = output
@@ -175,7 +175,7 @@ def run(n_epoch):
     vae = CubeSae().to(device)
     # load_model(vae)
     optimizer = Adam(vae.parameters(), lr=1e-3)
-    scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 200 else 0.1)
+    scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 200 else 1)
     best_loss = float('inf')
     best_epoch = 0
     for e in range(n_epoch):
