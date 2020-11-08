@@ -5,7 +5,7 @@ import numpy as np
 import torch
 import os
 
-BACK_TO_LOGIT = True
+BACK_TO_LOGIT = False
 
 if BACK_TO_LOGIT:
     print("Back to logit")
