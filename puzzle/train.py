@@ -200,4 +200,4 @@ if __name__ == "__main__":
     os.makedirs("puzzle/image/actions", exist_ok=True)
     os.makedirs("puzzle/image/samples", exist_ok=True)
     os.makedirs("puzzle/model", exist_ok=True)
-    run(5)
+    run(3000)
