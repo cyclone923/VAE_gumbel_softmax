@@ -97,7 +97,7 @@ def run(n_epoch):
         temp1 = np.maximum(TEMP_BEGIN_SAE * np.exp(-ANNEAL_RATE_SAE * e), TEMP_MIN_SAE)
         temp2 = np.maximum(TEMP_BEGIN_AAE * np.exp(-ANNEAL_RATE_AAE * e), TEMP_MIN_AAE)
         print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
-        train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e >= 100)
+        train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e >= 50)
         validation_loss = test(test_loader, vae, e, (temp1, temp2))
         print("Best test loss {:.5f} in epoch {}".format(best_loss, best_epoch))
         if validation_loss < best_loss:
