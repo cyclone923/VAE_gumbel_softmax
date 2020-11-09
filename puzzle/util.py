@@ -30,8 +30,8 @@ def save_action_histogram(all_a, e, temp):
     fig.suptitle('Epoch {}'.format(e), fontsize=12)
     plt.hist(all_a.numpy(), bins=N_ACTION)
     unique_a = torch.unique(all_a).shape[0]
-    plt.title('Action used: {}/{}, Temp: ({:.2f}, {:.2f})'.format(
-        unique_a, VALIDATION_EXAMPLES, temp[0], temp[1]), fontsize=8
+    plt.title('Action used: {}/{} in {} test examples, Temp: ({:.2f}, {:.2f})'.format(
+        unique_a, N_ACTION, VALIDATION_EXAMPLES, temp[0], temp[1]), fontsize=8
     )
     plt.savefig(os.path.join(ACTION_DIR, "{}.png".format(e)))
     plt.close(fig)
