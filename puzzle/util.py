@@ -26,7 +26,7 @@ N_ACTION_SQTR = int(np.sqrt(N_ACTION))
 
 def save_action_histogram(all_a, e, temp):
     all_a = torch.argmax(all_a.squeeze(), dim=-1).detach().cpu()
-    fig = plt.figure()
+    fig = plt.figure(figsize=(16,12))
     fig.suptitle('Epoch {}'.format(e), fontsize=12)
     plt.hist(all_a.numpy(), bins=N_ACTION)
     unique_a = torch.unique(all_a).shape[0]
@@ -51,7 +51,7 @@ def save_image(output, b_o1, b_o2, e, temp):
     selected = torch.arange(start=0, end=5)
     pre_process = lambda img: img[selected].squeeze().detach().cpu() if img is not None else None
 
-    fig, axs = plt.subplots(N_SMAPLE, 10 + (0 if BACK_TO_LOGIT else 3))
+    fig, axs = plt.subplots(N_SMAPLE, 10 + (0 if BACK_TO_LOGIT else 3), figsize=(16,12))
     fig.suptitle('Epoch {}, Temp: ({:.2f}, {:.2f})'.format(e, temp[0], temp[1]), fontsize=12)
 
     for i, single in enumerate(
