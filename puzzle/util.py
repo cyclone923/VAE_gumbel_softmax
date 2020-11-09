@@ -10,8 +10,10 @@ BACK_TO_LOGIT = eval(sys.argv[1])
 
 if BACK_TO_LOGIT:
     print("Back to logit")
+    sys.stdout = open("btl.out", "w")
 else:
     print("Naive")
+    sys.stdout = open("nv.out", "w")
 
 IMG_DIR = "puzzle/image_{}".format("btl" if BACK_TO_LOGIT else "naive")
 MODEL_DIR = "puzzle/model_{}".format("btl" if BACK_TO_LOGIT else "naive")
