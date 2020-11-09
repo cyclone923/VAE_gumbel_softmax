@@ -13,7 +13,7 @@ from puzzle.util import save_action_histogram, save_image, MODEL_DIR, MODEL_PATH
 from puzzle.make_gif import to_gif
 
 TEMP_BEGIN_SAE = 5
-TEMP_MIN_SAE = 0.01
+TEMP_MIN_SAE = 0.1
 ANNEAL_RATE_SAE = 0.06
 
 TEMP_BEGIN_AAE = 5
@@ -118,5 +118,5 @@ if __name__ == "__main__":
     os.makedirs(os.path.join(IMG_DIR, "actions"), exist_ok=True)
     os.makedirs(os.path.join(IMG_DIR, "samples"), exist_ok=True)
     os.makedirs(MODEL_DIR, exist_ok=True)
-    run(3000)
+    run(1000)
     to_gif()
