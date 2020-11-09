@@ -13,10 +13,10 @@ from puzzle.util import save_action_histogram, save_image, MODEL_DIR, MODEL_PATH
 from puzzle.make_gif import to_gif
 
 TEMP_BEGIN_SAE = 5
-TEMP_MIN_SAE = 0.3
+TEMP_MIN_SAE = 0.5
 TEMP_BEGIN_AAE = 5
-TEMP_MIN_AAE = 0.1
-ANNEAL_RATE = 0.007
+TEMP_MIN_AAE = 0.3
+ANNEAL_RATE = 0.006
 TRAIN_BZ = 2000
 TEST_BZ = 2000
 
