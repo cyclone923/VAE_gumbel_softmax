@@ -43,8 +43,8 @@ def train(dataloader, vae, optimizer, temp, add_spasity):
         train_loss += loss.item()
         optimizer.step()
 
-    print("TRAINING LOSS REC_IMG: {:.3f}, REC_LATENT: {:.3f}, SPASITY_LATENT: {:.3f}".format(
-        ep_image_loss/len(dataloader), ep_latent_loss/len(dataloader), ep_spasity/len(dataloader))
+    print("Total {:.3f}, Rec: {:.3f}, Latent: {:.3f}, Spasity: {:.3f}".format(
+        train_loss / len(dataloader), ep_image_loss/len(dataloader), ep_latent_loss/len(dataloader), ep_spasity/len(dataloader))
     )
     return train_loss / len(dataloader)
 
@@ -72,8 +72,8 @@ def test(dataloader, vae, e, temp):
             break
         n_action = save_action_histogram(torch.cat(all_a, dim=0), e)
 
-    print("TESTING LOSS REC_IMG: {:.3f}, REC_LATENT: {:.3f}, SPASITY_LATENT: {:.3f}, {} ACTIONS USED".format(
-        ep_image_loss/len(dataloader), ep_latent_loss/len(dataloader), ep_spasity/len(dataloader), n_action)
+    print("Total {:.3f}, Rec: {:.3f}, Latent: {:.3f}, Spasity: {:.3f}".format(
+        test_loss / len(dataloader), ep_image_loss/len(dataloader), ep_latent_loss/len(dataloader), ep_spasity/len(dataloader))
     )
     return test_loss / len(dataloader)
 
@@ -95,11 +95,10 @@ def run(n_epoch):
         temp2 = np.maximum(TEMP_BEGIN_AAE * np.exp(-ANNEAL_RATE * e), TEMP_MIN_AAE)
         print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
         train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e >= 50)
-        print('====> Epoch: {} Average train loss: {:.4f}'.format(e, train_loss))
         test_loss = test(test_loader, vae, e, (temp1, temp2))
-        print('====> Epoch: {} Average test loss: {:.4f}, best loss {:.4f} in epoch {}'.format(e, test_loss, best_loss, best_epoch))
+        print("Best test loss {:.4f} in epoch {}".format(e, test_loss, best_loss, best_epoch))
         if test_loss < best_loss:
-            print("Save Model")
+            print("Save model to {}".format(MODEL_PATH))
             torch.save(vae.state_dict(), MODEL_PATH)
             best_loss = test_loss
             best_epoch = e
