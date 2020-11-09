@@ -4,8 +4,9 @@ from puzzle.sae import LATENT_DIM, N_ACTION
 import numpy as np
 import torch
 import os
+import sys
 
-BACK_TO_LOGIT = False
+BACK_TO_LOGIT = eval(sys.argv[1])
 
 if BACK_TO_LOGIT:
     print("Back to logit")
