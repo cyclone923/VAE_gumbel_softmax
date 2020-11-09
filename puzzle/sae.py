@@ -67,13 +67,15 @@ class Aae(nn.Module):
         self.bn5 = nn.BatchNorm1d(num_features=1)
         self.dpt5 = nn.Dropout(0.4)
 
+        self.bn_input = nn.BatchNorm1d(num_features=LATENT_DIM)
+        self.bn_effect = nn.BatchNorm1d(num_features=LATENT_DIM)
+
         self.back_to_logit = back_to_logit
         if self.back_to_logit:
             self.fc6 = nn.Linear(in_features=400, out_features=LATENT_DIM)
-            self.bn_input = nn.BatchNorm1d(num_features=LATENT_DIM)
-            self.bn_effect = nn.BatchNorm1d(num_features=LATENT_DIM)
         else:
             self.fc6 = nn.Linear(in_features=400, out_features=LATENT_DIM * 3)
+
 
     def encode(self, s, z, temp):
         s = torch.flatten(s, start_dim=1).unsqueeze(1)
@@ -87,11 +89,10 @@ class Aae(nn.Module):
         h4 = bn_and_dpt(torch.relu(self.fc4(a)), self.bn4, self.dpt4)
         h5 = bn_and_dpt(torch.relu(self.fc5(h4)), self.bn5, self.dpt5)
         h6 = self.fc6(h5)
-
+        s = self.bn_input(s)
 
         if self.back_to_logit:
             h6 = h6.view(-1, LATENT_DIM, 1)
-            s = self.bn_input(s)
             h6 = self.bn_effect(h6)
             s = gumbel_softmax(h6+s, temp)
             add = None
@@ -99,6 +100,7 @@ class Aae(nn.Module):
         else:
             h6 = h6.view(-1, LATENT_DIM, 3)
             h6 = gumbel_softmax(h6, temp)
+            h6 = self.bn_effect(h6)
             add = h6[:,:,[0]]
             delete = h6[:,:,[1]]
             s = torch.max(s, add)
