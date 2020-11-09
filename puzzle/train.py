@@ -47,7 +47,7 @@ def train(dataloader, vae, optimizer, temp, add_regularization):
         train_loss += loss.item()
         optimizer.step()
 
-    print("TRAINING Total {:.5f}, Rec: {:.5f}, Latent: {:.5f}, Spasity: {:.5f}".format(
+    print("\nTRAINING Total {:.5f}, Rec: {:.5f}, Latent: {:.5f}, Spasity: {:.5f}".format(
         train_loss / len(dataloader), ep_image_loss/len(dataloader), ep_latent_loss/len(dataloader), ep_spasity/len(dataloader))
     )
     return train_loss / len(dataloader)
@@ -76,7 +76,7 @@ def test(dataloader, vae, e, temp):
             break
         n_action = save_action_histogram(torch.cat(all_a, dim=0), e, temp)
 
-    print("VALIDATION Total {:.5f}, Rec: {:.5f}, Latent: {:.5f}, Spasity: {:.5f}".format(
+    print("\nVALIDATION Total {:.5f}, Rec: {:.5f}, Latent: {:.5f}, Spasity: {:.5f}".format(
         validation_loss / len(dataloader), ep_image_loss/len(dataloader), ep_latent_loss/len(dataloader), ep_spasity/len(dataloader))
     )
     return validation_loss / len(dataloader)
@@ -98,10 +98,11 @@ def run(n_epoch):
         sys.stdout.flush()
         temp1 = np.maximum(TEMP_BEGIN_SAE * np.exp(-ANNEAL_RATE_SAE * e), TEMP_MIN_SAE)
         temp2 = np.maximum(TEMP_BEGIN_AAE * np.exp(-ANNEAL_RATE_AAE * e), TEMP_MIN_AAE)
+        print("\n-"*50)
         print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
         train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e >= 50)
         validation_loss = test(test_loader, vae, e, (temp1, temp2))
-        print("Best test loss {:.5f} in epoch {}".format(best_loss, best_epoch))
+        print("\nBest test loss {:.5f} in epoch {}".format(best_loss, best_epoch))
         if validation_loss < best_loss:
             print("Save model to {}".format(MODEL_PATH))
             torch.save(vae.state_dict(), MODEL_PATH)
