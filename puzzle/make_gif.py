@@ -10,3 +10,7 @@ def to_gif():
             images.append(imageio.imread(os.path.join(dir, filename)))
         print(len(images))
         imageio.mimsave('{}-{}.gif'.format(out_name, "btl" if BACK_TO_LOGIT else "nv"), images)
+
+
+if __name__ == '__main__':
+    to_gif()
