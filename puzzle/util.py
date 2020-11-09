@@ -48,7 +48,7 @@ def save_image(output, b_o1, b_o2, e, temp):
         ax.imshow(img, cmap='gray')
 
     N_SMAPLE= 10
-    selected = torch.arange(start=0, end=5)
+    selected = torch.arange(start=0, end=N_SMAPLE)
     pre_process = lambda img: img[selected].squeeze().detach().cpu() if img is not None else None
 
     fig, axs = plt.subplots(N_SMAPLE, 10 + (0 if BACK_TO_LOGIT else 3), figsize=(16,12))
