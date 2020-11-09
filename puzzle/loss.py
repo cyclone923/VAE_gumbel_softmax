@@ -4,11 +4,11 @@ ALPHA = 0.7
 
 # Reconstruction + zero suppressed losses summed over all elements and batch
 def rec_loss_function(recon_x, x, criterion):
-    BCE = criterion(recon_x, x).sum(dim=[i for i in range(1, x.dim())]).mean()
+    BCE = criterion(recon_x, x).mean()
     return BCE
 
 def latent_spasity(z):
-    return z.sum(dim=[i for i in range(1, z.dim())]).mean() * ALPHA
+    return z.mean() * ALPHA
 
 def total_loss(output, o1, o2):
     recon_o1, recon_o2, recon_o2_tilde, z1, z2, recon_z2, _, _, _ = output

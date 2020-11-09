@@ -14,7 +14,7 @@ from puzzle.util import save_action_histogram, save_image, MODEL_DIR, MODEL_PATH
 TEMP_BEGIN_SAE = 5
 TEMP_MIN_SAE = 0.3
 TEMP_BEGIN_AAE = 5
-TEMP_MIN_AAE = 1
+TEMP_MIN_AAE = 0.5
 ANNEAL_RATE = 0.03
 TRAIN_BZ = 500
 TEST_BZ = 2000
