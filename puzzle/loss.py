@@ -1,6 +1,6 @@
 import torch.nn as nn
 
-ALPHA = 0.01
+ALPHA = 0.001
 BETA = 0.03
 
 # Reconstruction + zero suppressed losses summed over all elements and batch
