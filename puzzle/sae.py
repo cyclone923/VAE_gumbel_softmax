@@ -68,11 +68,11 @@ class Aae(nn.Module):
         self.dpt5 = nn.Dropout(0.4)
 
         self.bn_input = nn.BatchNorm1d(num_features=LATENT_DIM)
-        self.bn_effect = nn.BatchNorm1d(num_features=LATENT_DIM)
 
         self.back_to_logit = back_to_logit
         if self.back_to_logit:
             self.fc6 = nn.Linear(in_features=400, out_features=LATENT_DIM)
+            self.bn_effect = nn.BatchNorm1d(num_features=LATENT_DIM)
         else:
             self.fc6 = nn.Linear(in_features=400, out_features=LATENT_DIM * 3)
 
@@ -100,7 +100,6 @@ class Aae(nn.Module):
         else:
             h6 = h6.view(-1, LATENT_DIM, 3)
             h6 = gumbel_softmax(h6, temp)
-            h6 = self.bn_effect(h6)
             add = h6[:,:,[0]]
             delete = h6[:,:,[1]]
             s = torch.max(s, add)
