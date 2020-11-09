@@ -11,6 +11,7 @@ from puzzle.gumble import device
 from puzzle.loss import total_loss
 from puzzle.util import save_action_histogram, save_image, MODEL_DIR, MODEL_PATH, IMG_DIR, BACK_TO_LOGIT
 from puzzle.make_gif import to_gif
+import sys
 
 TEMP_BEGIN_SAE = 5
 TEMP_MIN_SAE = 0.1
@@ -94,6 +95,7 @@ def run(n_epoch):
     best_loss = float('inf')
     best_epoch = 0
     for e in range(n_epoch):
+        sys.stdout.flush()
         temp1 = np.maximum(TEMP_BEGIN_SAE * np.exp(-ANNEAL_RATE_SAE * e), TEMP_MIN_SAE)
         temp2 = np.maximum(TEMP_BEGIN_AAE * np.exp(-ANNEAL_RATE_AAE * e), TEMP_MIN_AAE)
         print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
