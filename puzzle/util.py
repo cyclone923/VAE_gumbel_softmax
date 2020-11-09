@@ -24,7 +24,6 @@ MODEL_PATH = os.path.join(MODEL_DIR, "{}.pth".format(MODEL_NAME))
 LATENT_DIM_SQRT = int(np.sqrt(LATENT_DIM))
 N_ACTION_SQTR = int(np.sqrt(N_ACTION))
 
-
 def save_action_histogram(all_a, e):
     all_a = torch.argmax(all_a.squeeze(), dim=-1).detach().cpu()
     fig = plt.figure()
@@ -34,6 +33,7 @@ def save_action_histogram(all_a, e):
     plt.title('Action used across test dataset of {} example: {}'.format(VALIDATION_EXAMPLES, unique_a), fontsize=8)
     plt.savefig(os.path.join(ACTION_DIR, "{}.png".format(e)))
     plt.close(fig)
+    print("{} action used".format(unique_a))
     return unique_a
 
 def save_image(output, b_o1, b_o2, e):

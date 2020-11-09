@@ -8,7 +8,7 @@ def rec_loss_function(recon_x, x, criterion):
     return BCE
 
 def latent_spasity(z):
-    return z.mean() * ALPHA
+    return z.square().mean() * ALPHA
 
 def total_loss(output, o1, o2):
     recon_o1, recon_o2, recon_o2_tilde, z1, z2, recon_z2, _, _, _ = output
