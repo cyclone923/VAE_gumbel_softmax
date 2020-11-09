@@ -22,7 +22,7 @@ TEST_BZ = 2000
 
 torch.manual_seed(0)
 
-def train(dataloader, vae, optimizer, temp, add_spasity):
+def train(dataloader, vae, optimizer, temp, add_regularization):
     vae.train()
     train_loss = 0
     ep_image_loss, ep_latent_loss, ep_spasity = 0, 0, 0
@@ -37,9 +37,9 @@ def train(dataloader, vae, optimizer, temp, add_spasity):
         ep_image_loss += image_loss.item()
         ep_latent_loss += latent_loss.item()
         ep_spasity += sparsity.item()
-        loss = image_loss + latent_loss
-        if add_spasity:
-            loss += sparsity
+        loss = image_loss
+        if add_regularization:
+            loss += sparsity + latent_loss
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
@@ -116,5 +116,5 @@ if __name__ == "__main__":
     os.makedirs(os.path.join(IMG_DIR, "actions"), exist_ok=True)
     os.makedirs(os.path.join(IMG_DIR, "samples"), exist_ok=True)
     os.makedirs(MODEL_DIR, exist_ok=True)
-    run(100)
+    run(300)
     to_gif()
