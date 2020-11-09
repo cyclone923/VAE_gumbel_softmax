@@ -13,10 +13,10 @@ from puzzle.util import save_action_histogram, save_image, MODEL_DIR, MODEL_PATH
 from puzzle.make_gif import to_gif
 
 TEMP_BEGIN_SAE = 5
-TEMP_MIN_SAE = 0.3
+TEMP_MIN_SAE = 0.7
 TEMP_BEGIN_AAE = 5
-TEMP_MIN_AAE = 0.1
-ANNEAL_RATE = 0.03
+TEMP_MIN_AAE = 0.3
+ANNEAL_RATE = 0.001
 TRAIN_BZ = 2000
 TEST_BZ = 2000
 
@@ -95,7 +95,7 @@ def run(n_epoch):
         temp1 = np.maximum(TEMP_BEGIN_SAE * np.exp(-ANNEAL_RATE * e), TEMP_MIN_SAE)
         temp2 = np.maximum(TEMP_BEGIN_AAE * np.exp(-ANNEAL_RATE * e), TEMP_MIN_AAE)
         print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
-        train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e >= 100)
+        train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e >= 200)
         validation_loss = test(test_loader, vae, e, (temp1, temp2))
         print("Best test loss {:.5f} in epoch {}".format(best_loss, best_epoch))
         if validation_loss < best_loss:
@@ -116,5 +116,5 @@ if __name__ == "__main__":
     os.makedirs(os.path.join(IMG_DIR, "actions"), exist_ok=True)
     os.makedirs(os.path.join(IMG_DIR, "samples"), exist_ok=True)
     os.makedirs(MODEL_DIR, exist_ok=True)
-    run(300)
+    run(3000)
     to_gif()
