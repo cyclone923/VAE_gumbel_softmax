@@ -96,7 +96,7 @@ def run(n_epoch):
         print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
         train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e >= 50)
         test_loss = test(test_loader, vae, e, (temp1, temp2))
-        print("Best test loss {:.4f} in epoch {}".format(e, test_loss, best_loss, best_epoch))
+        print("Best test loss {:.4f} in epoch {}".format(e, best_loss, best_epoch))
         if test_loss < best_loss:
             print("Save model to {}".format(MODEL_PATH))
             torch.save(vae.state_dict(), MODEL_PATH)
