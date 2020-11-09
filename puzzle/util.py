@@ -24,19 +24,21 @@ MODEL_PATH = os.path.join(MODEL_DIR, "{}.pth".format(MODEL_NAME))
 LATENT_DIM_SQRT = int(np.sqrt(LATENT_DIM))
 N_ACTION_SQTR = int(np.sqrt(N_ACTION))
 
-def save_action_histogram(all_a, e):
+def save_action_histogram(all_a, e, temp):
     all_a = torch.argmax(all_a.squeeze(), dim=-1).detach().cpu()
     fig = plt.figure()
     fig.suptitle('Epoch {}'.format(e), fontsize=12)
     plt.hist(all_a.numpy(), bins=N_ACTION)
     unique_a = torch.unique(all_a).shape[0]
-    plt.title('Action used across test dataset of {} example: {}'.format(VALIDATION_EXAMPLES, unique_a), fontsize=8)
+    plt.title('Action used: {}/{}, Temp: ({:.2f}, {:.2f})'.format(
+        unique_a, VALIDATION_EXAMPLES, temp[0], temp[1]), fontsize=8
+    )
     plt.savefig(os.path.join(ACTION_DIR, "{}.png".format(e)))
     plt.close(fig)
     print("{} action used".format(unique_a))
     return unique_a
 
-def save_image(output, b_o1, b_o2, e):
+def save_image(output, b_o1, b_o2, e, temp):
     def show_img(ax, img, t, set_title=False):
         ax.axes.xaxis.set_visible(False)
         ax.axes.yaxis.set_visible(False)
@@ -50,7 +52,7 @@ def save_image(output, b_o1, b_o2, e):
     pre_process = lambda img: img[selected].squeeze().detach().cpu() if img is not None else None
 
     fig, axs = plt.subplots(N_SMAPLE, 10 + (0 if BACK_TO_LOGIT else 3))
-    fig.suptitle('Epoch {}'.format(e), fontsize=12)
+    fig.suptitle('Epoch {}, Temp: ({:.2f}, {:.2f})'.format(e, temp[0], temp[1]), fontsize=12)
 
     for i, single in enumerate(
             zip(*([pre_process(b_o1), pre_process(b_o2)] + [pre_process(i) for i in output if i is not None]))

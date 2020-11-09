@@ -68,10 +68,10 @@ def test(dataloader, vae, e, temp):
             loss = image_loss + latent_loss + spasity
             validation_loss += loss.item()
             if i == 0:
-                save_image(output, o1+ noise1, o2+ noise1, e)
+                save_image(output, o1+ noise1, o2+ noise1, e, temp)
             all_a.append(output[-3])
             break
-        n_action = save_action_histogram(torch.cat(all_a, dim=0), e)
+        n_action = save_action_histogram(torch.cat(all_a, dim=0), e, temp)
 
     print("VALIDATION Total {:.5f}, Rec: {:.5f}, Latent: {:.5f}, Spasity: {:.5f}".format(
         validation_loss / len(dataloader), ep_image_loss/len(dataloader), ep_latent_loss/len(dataloader), ep_spasity/len(dataloader))
