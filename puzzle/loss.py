@@ -1,6 +1,6 @@
 import torch.nn as nn
 
-ALPHA = 0.3
+ALPHA = 0.1
 
 # Reconstruction + zero suppressed losses summed over all elements and batch
 def rec_loss_function(recon_x, x, criterion):
@@ -8,7 +8,7 @@ def rec_loss_function(recon_x, x, criterion):
     return BCE
 
 def latent_spasity(z):
-    return z.square().mean() * ALPHA
+    return z.mean() * ALPHA
 
 def total_loss(output, o1, o2):
     recon_o1, recon_o2, recon_o2_tilde, z1, z2, recon_z2, _, _, _ = output
