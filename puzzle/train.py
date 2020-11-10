@@ -18,8 +18,8 @@ TEMP_MIN_SAE = 0.1
 ANNEAL_RATE_SAE = 0.06
 
 TEMP_BEGIN_AAE = 5
-TEMP_MIN_AAE = 0.02
-ANNEAL_RATE_AAE = 0.002
+TEMP_MIN_AAE = 0.08
+ANNEAL_RATE_AAE = 0.003
 TRAIN_BZ = 2000
 TEST_BZ = 2000
 
@@ -91,14 +91,14 @@ def run(n_epoch):
     vae = CubeSae(BACK_TO_LOGIT).to(device)
     # load_model(vae)
     optimizer = Adam(vae.parameters(), lr=1e-3)
-    scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 100 else 0.1)
+    scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 100 else 1)
     best_loss = float('inf')
     best_epoch = 0
     for e in range(n_epoch):
         sys.stdout.flush()
         temp1 = np.maximum(TEMP_BEGIN_SAE * np.exp(-ANNEAL_RATE_SAE * e), TEMP_MIN_SAE)
         temp2 = np.maximum(TEMP_BEGIN_AAE * np.exp(-ANNEAL_RATE_AAE * e), TEMP_MIN_AAE)
-        print("\n-"*50)
+        print("\n" + "-"*50)
         print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
         train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e >= 50)
         validation_loss = test(test_loader, vae, e, (temp1, temp2))
