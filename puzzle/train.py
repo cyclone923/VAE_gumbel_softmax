@@ -19,9 +19,10 @@ ANNEAL_RATE_SAE = 0.06
 
 TEMP_BEGIN_AAE = 5
 TEMP_MIN_AAE = 0.08
-ANNEAL_RATE_AAE = 0.003
+ANNEAL_RATE_AAE = 0.002
 TRAIN_BZ = 2000
 TEST_BZ = 2000
+ADD_REG_EPOCH = 50
 
 torch.manual_seed(0)
 
@@ -97,10 +98,10 @@ def run(n_epoch):
     for e in range(n_epoch):
         sys.stdout.flush()
         temp1 = np.maximum(TEMP_BEGIN_SAE * np.exp(-ANNEAL_RATE_SAE * e), TEMP_MIN_SAE)
-        temp2 = np.maximum(TEMP_BEGIN_AAE * np.exp(-ANNEAL_RATE_AAE * e), TEMP_MIN_AAE)
+        temp2 = np.maximum(TEMP_BEGIN_AAE * np.exp(-ANNEAL_RATE_AAE * max(e - ADD_REG_EPOCH, 0)), TEMP_MIN_AAE)
         print("\n" + "-"*50)
         print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
-        train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e >= 50)
+        train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e >= ADD_REG_EPOCH)
         validation_loss = test(test_loader, vae, e, (temp1, temp2))
         print("\nBest test loss {:.5f} in epoch {}".format(best_loss, best_epoch))
         if validation_loss < best_loss:

@@ -101,8 +101,8 @@ class Aae(nn.Module):
             h6 = gumbel_softmax(h6, temp)
             add = h6[:,:,[0]]
             delete = h6[:,:,[1]]
-            s = torch.max(s, add)
             s = torch.min(s, 1-delete)
+            s = torch.max(s, add)
 
         return s, add, delete
 

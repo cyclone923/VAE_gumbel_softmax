@@ -12,7 +12,7 @@ def latent_spasity(z, weight=1.):
     return z.mean() * weight
 
 def total_loss(output, o1, o2):
-    recon_o1, recon_o2, recon_o2_tilde, z1, z2, recon_z2, _, _, _ = output
+    recon_o1, recon_o2, recon_o2_tilde, z1, z2, recon_z2, add, delete, _ = output
     image_loss = 0
     latent_loss = 0
     spasity = 0
@@ -23,4 +23,8 @@ def total_loss(output, o1, o2):
     spasity += latent_spasity(z1, ALPHA)
     spasity += latent_spasity(z2, ALPHA)
     # spasity += latent_spasity(recon_z2, ALPHA)
+    if add is not None:
+        spasity += latent_spasity(add, ALPHA)
+    if delete is not None:
+        spasity += latent_spasity(delete, ALPHA)
     return image_loss, latent_loss, spasity
