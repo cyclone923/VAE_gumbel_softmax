@@ -1,7 +1,7 @@
 import torch.nn as nn
 
-ALPHA = 0.01
-BETA = 0.08
+ALPHA = 0.1
+BETA = 1
 
 # Reconstruction + zero suppressed losses summed over all elements and batch
 def rec_loss_function(recon_x, x, criterion, weight=1.):
