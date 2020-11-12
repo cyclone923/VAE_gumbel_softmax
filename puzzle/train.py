@@ -18,8 +18,8 @@ TEMP_MIN_SAE = 0.1
 ANNEAL_RATE_SAE = 0.06
 
 TEMP_BEGIN_AAE = 5
-TEMP_MIN_AAE = 0.08
-ANNEAL_RATE_AAE = 0.002
+TEMP_MIN_AAE = 0.1
+ANNEAL_RATE_AAE = 0.004
 TRAIN_BZ = 2000
 TEST_BZ = 2000
 ADD_REG_EPOCH = 50
@@ -122,5 +122,5 @@ if __name__ == "__main__":
     os.makedirs(os.path.join(IMG_DIR, "actions"), exist_ok=True)
     os.makedirs(os.path.join(IMG_DIR, "samples"), exist_ok=True)
     os.makedirs(MODEL_DIR, exist_ok=True)
-    run(3000)
+    run(1500)
     to_gif()
