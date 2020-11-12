@@ -26,10 +26,10 @@ class Sae(nn.Module):
         self.fc4 = nn.Linear(in_features=LATENT_DIM * CATEGORICAL_DIM, out_features=200)
         self.bn4 = nn.BatchNorm1d(num_features=1)
         self.dpt4 = nn.Dropout(0.4)
-        self.fc5 = nn.Linear(in_features=200, out_features=400)
+        self.fc5 = nn.Linear(in_features=200, out_features=600)
         self.bn5 = nn.BatchNorm1d(num_features=1)
         self.dpt5 = nn.Dropout(0.4)
-        self.fc6 = nn.Linear(in_features=1000, out_features=(BASE_SIZE*3) ** 2)
+        self.fc6 = nn.Linear(in_features=600, out_features=(BASE_SIZE*3) ** 2)
 
     def encode(self, x):
         h1 = bn_and_dpt(torch.tanh(self.conv1(x)), self.bn1, self.dpt1)
