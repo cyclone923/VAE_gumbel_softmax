@@ -19,6 +19,7 @@ IMG_DIR = "puzzle/image_{}".format("btl" if BACK_TO_LOGIT else "naive")
 MODEL_DIR = "puzzle/model_{}".format("btl" if BACK_TO_LOGIT else "naive")
 ACTION_DIR = os.path.join(IMG_DIR, "actions")
 SAMPLE_DIR = os.path.join(IMG_DIR, "samples")
+FIG_SIZE = (12, 9)
 
 MODEL_NAME = "CubeSae"
 MODEL_PATH = os.path.join(MODEL_DIR, "{}.pth".format(MODEL_NAME))
@@ -28,7 +29,7 @@ N_ACTION_SQTR = int(np.sqrt(N_ACTION))
 
 def save_action_histogram(all_a, e, temp):
     all_a = torch.argmax(all_a.squeeze(), dim=-1).detach().cpu()
-    fig = plt.figure(figsize=(16,12))
+    fig = plt.figure(figsize=FIG_SIZE)
     fig.suptitle('Epoch {}'.format(e), fontsize=12)
     plt.hist(all_a.numpy(), bins=N_ACTION)
     unique_a = torch.unique(all_a).shape[0]
@@ -53,7 +54,7 @@ def save_image(output, b_o1, b_o2, e, temp):
     selected = torch.arange(start=0, end=N_SMAPLE)
     pre_process = lambda img: img[selected].squeeze().detach().cpu() if img is not None else None
 
-    fig, axs = plt.subplots(N_SMAPLE, 10 + (0 if BACK_TO_LOGIT else 3), figsize=(16,12))
+    fig, axs = plt.subplots(N_SMAPLE, 10 + (0 if BACK_TO_LOGIT else 3), figsize=FIG_SIZE)
     fig.suptitle('Epoch {}, Temp: ({:.2f}, {:.2f})'.format(e, temp[0], temp[1]), fontsize=12)
 
     for i, single in enumerate(

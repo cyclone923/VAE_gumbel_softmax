@@ -1,6 +1,6 @@
 import torch.nn as nn
 
-ALPHA = 0.1
+ALPHA = 0.5
 BETA = 1
 
 # Reconstruction + zero suppressed losses summed over all elements and batch
@@ -16,15 +16,15 @@ def total_loss(output, o1, o2):
     image_loss = 0
     latent_loss = 0
     spasity = 0
-    image_loss += rec_loss_function(recon_o1, o1, nn.BCELoss(reduction='none'))
-    image_loss += rec_loss_function(recon_o2, o2, nn.BCELoss(reduction='none'))
-    # image_loss += rec_loss_function(recon_o2_tilde, o2, nn.BCELoss(reduction='none'))
+    image_loss += rec_loss_function(recon_o1, o1, nn.MSELoss(reduction='none'))
+    image_loss += rec_loss_function(recon_o2, o2, nn.MSELoss(reduction='none'))
+    image_loss += rec_loss_function(recon_o2_tilde, o2, nn.MSELoss(reduction='none'))
     latent_loss += rec_loss_function(recon_z2, z2.detach(), nn.L1Loss(reduction='none'), BETA)
     spasity += latent_spasity(z1, ALPHA)
     spasity += latent_spasity(z2, ALPHA)
-    # spasity += latent_spasity(recon_z2, ALPHA)
-    if add is not None:
-        spasity += latent_spasity(add, ALPHA)
-    if delete is not None:
-        spasity += latent_spasity(delete, ALPHA)
+    spasity += latent_spasity(recon_z2, ALPHA)
+    # if add is not None:
+    #     spasity += latent_spasity(add, ALPHA)
+    # if delete is not None:
+    #     spasity += latent_spasity(delete, ALPHA)
     return image_loss, latent_loss, spasity
