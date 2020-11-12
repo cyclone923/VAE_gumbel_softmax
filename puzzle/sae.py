@@ -23,13 +23,13 @@ class Sae(nn.Module):
         self.dpt2 = nn.Dropout(0.4)
         self.fc3 = nn.Linear(in_features=(BASE_SIZE*3) ** 2 * 16, out_features=LATENT_DIM*CATEGORICAL_DIM)
 
-        self.fc4 = nn.Linear(in_features=LATENT_DIM * CATEGORICAL_DIM, out_features=200)
+        self.fc4 = nn.Linear(in_features=LATENT_DIM * CATEGORICAL_DIM, out_features=1000)
         self.bn4 = nn.BatchNorm1d(num_features=1)
         self.dpt4 = nn.Dropout(0.4)
-        self.fc5 = nn.Linear(in_features=200, out_features=600)
+        self.fc5 = nn.Linear(in_features=1000, out_features=1000)
         self.bn5 = nn.BatchNorm1d(num_features=1)
         self.dpt5 = nn.Dropout(0.4)
-        self.fc6 = nn.Linear(in_features=600, out_features=(BASE_SIZE*3) ** 2)
+        self.fc6 = nn.Linear(in_features=1000, out_features=(BASE_SIZE*3) ** 2)
 
     def encode(self, x):
         h1 = bn_and_dpt(torch.tanh(self.conv1(x)), self.bn1, self.dpt1)
@@ -52,13 +52,13 @@ class Sae(nn.Module):
 class Aae(nn.Module):
     def __init__(self, back_to_logit=True):
         super(Aae, self).__init__()
-        self.fc1 = nn.Linear(in_features=LATENT_DIM + LATENT_DIM, out_features=200)
+        self.fc1 = nn.Linear(in_features=LATENT_DIM + LATENT_DIM, out_features=1000)
         self.bn1 = nn.BatchNorm1d(num_features=1)
         self.dpt1 = nn.Dropout(0.4)
-        self.fc2 = nn.Linear(in_features=200 + LATENT_DIM, out_features=200)
+        self.fc2 = nn.Linear(in_features=1000 + LATENT_DIM, out_features=1000)
         self.bn2 = nn.BatchNorm1d(num_features=1)
         self.dpt2 = nn.Dropout(0.4)
-        self.fc3 = nn.Linear(in_features=200 + LATENT_DIM, out_features=N_ACTION)
+        self.fc3 = nn.Linear(in_features=1000 + LATENT_DIM, out_features=N_ACTION)
 
         self.fc4 = nn.Linear(in_features=N_ACTION, out_features=1000)
         self.bn4 = nn.BatchNorm1d(num_features=1)
