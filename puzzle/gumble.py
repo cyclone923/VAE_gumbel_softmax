@@ -1,6 +1,5 @@
 import torch
 
-GUMBLE_NOISE = True
 if torch.cuda.is_available():
     device = 'cuda:0'
     print("Using GPU")
@@ -16,7 +15,7 @@ def sample_bin_concrete(shape, eps=1e-20):
     U = torch.rand(shape).to(device)
     return torch.log(U + eps) - torch.log(1 - U - eps)
 
-def gumbel_softmax_sample(logits, temperature, add_noise=GUMBLE_NOISE):
+def gumbel_softmax_sample(logits, temperature, add_noise):
     if logits.size()[-1] == 1:
         if temperature == 0: # make it to sigmoid if it is a bit choice
             ret = (logits > 0.5).float()
@@ -36,14 +35,14 @@ def gumbel_softmax_sample(logits, temperature, add_noise=GUMBLE_NOISE):
             ret = torch.softmax(logits / temperature, dim=-1)
     return ret
 
-def gumbel_softmax(q_y, temperature, hard=False):
+def gumbel_softmax(q_y, temperature, add_noise, hard=False):
     """
     ST-gumple-softmax
     input: [*, n_class]
     return: flatten --> [*, n_class] an one-hot vector
     """
 
-    y = gumbel_softmax_sample(q_y, temperature)
+    y = gumbel_softmax_sample(q_y, temperature, add_noise)
     if hard:
         if y.size()[-1] == 1:
             true_bit = y > 0.5

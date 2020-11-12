@@ -101,8 +101,8 @@ def run(n_epoch):
         temp2 = np.maximum(TEMP_BEGIN_AAE * np.exp(-ANNEAL_RATE_AAE * max(e - ADD_REG_EPOCH, 0)), TEMP_MIN_AAE)
         print("\n" + "-"*50)
         print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
-        train_loss = train(train_loader, vae, optimizer, (temp1, temp2), e >= ADD_REG_EPOCH)
-        validation_loss = test(test_loader, vae, e, (temp1, temp2))
+        train_loss = train(train_loader, vae, optimizer, (temp1, temp2, True), e >= ADD_REG_EPOCH)
+        validation_loss = test(test_loader, vae, e, (temp1, temp2, False))
         print("\nBest test loss {:.5f} in epoch {}".format(best_loss, best_epoch))
         if validation_loss < best_loss:
             print("Save model to {}".format(MODEL_PATH))
@@ -122,5 +122,5 @@ if __name__ == "__main__":
     os.makedirs(os.path.join(IMG_DIR, "actions"), exist_ok=True)
     os.makedirs(os.path.join(IMG_DIR, "samples"), exist_ok=True)
     os.makedirs(MODEL_DIR, exist_ok=True)
-    run(1500)
+    run(1000)
     to_gif()
