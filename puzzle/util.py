@@ -102,7 +102,7 @@ def load_model(vae):
     print(MODEL_PATH)
 
 
-def check_and_clip_grad_norm(model, norm_type=2, max_clip=0.5):
+def check_and_clip_grad_norm(model, norm_type=2, max_clip=1):
     avg_norm_without_clip = 0
     avg_norm_with_clip = 0
     module_cnt = 0
