@@ -46,7 +46,7 @@ def train(dataloader, vae, optimizer, temp, add_regularization):
         if add_regularization:
             loss += sparsity + latent_loss
         loss.backward()
-        grad_norm, = check_and_clip_grad_norm(vae)
+        grad_norm = check_and_clip_grad_norm(vae)
         ep_grad_norm += grad_norm
         train_loss += loss.item()
         optimizer.step()
@@ -54,7 +54,6 @@ def train(dataloader, vae, optimizer, temp, add_regularization):
     print(
         "\nTRAINING Total {:.5f}, Rec: {:.5f}, Latent: {:.5f}, Spasity: {:.5f}, Grad_Norm: {:.5f}".format
         (
-
         train_loss / len(dataloader),
         ep_image_loss/len(dataloader),
         ep_latent_loss/len(dataloader),
