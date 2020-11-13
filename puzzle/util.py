@@ -102,7 +102,7 @@ def load_model(vae):
     print(MODEL_PATH)
 
 
-def check_and_clip_grad_norm(model, norm_type=2, max_clip=20):
+def check_and_clip_grad_norm(model, norm_type=2, max_clip=5):
     avg_norm_without_clip = 0
     avg_norm_with_clip = 0
     module_cnt = 0
@@ -111,7 +111,7 @@ def check_and_clip_grad_norm(model, norm_type=2, max_clip=20):
         avg_norm_without_clip += norm
         module_cnt += 1
         if norm > max_clip:
-            print("{}: {:.3f}".format(name, norm))
+            print("Clip grad for {}: {:.3f}".format(name, norm))
             clip_grad_norm_([p], max_clip)
             avg_norm_with_clip += max_clip
         else:
