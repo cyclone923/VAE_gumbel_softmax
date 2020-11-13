@@ -1,19 +1,29 @@
 import matplotlib.pyplot as plt
 from puzzle.dataset import VALIDATION_EXAMPLES
-from puzzle.sae import LATENT_DIM, N_ACTION
-import numpy as np
 import torch
 import os
 import sys
+from torch.nn.utils import clip_grad_norm_
 
 BACK_TO_LOGIT = eval(sys.argv[1])
+DEBUG = False
 
 if BACK_TO_LOGIT:
     print("Back to logit")
-    sys.stdout = open("btl.out", "w")
+    redirect_output = "btl.out"
 else:
     print("Naive")
-    sys.stdout = open("nv.out", "w")
+    redirect_output = "nv.out"
+
+if not DEBUG:
+    sys.stdout = open(redirect_output, "w")
+
+if torch.cuda.is_available():
+    device = 'cuda:0'
+    print("Using GPU")
+else:
+    device = 'cpu'
+    print("Using CPU")
 
 IMG_DIR = "puzzle/image_{}".format("btl" if BACK_TO_LOGIT else "naive")
 MODEL_DIR = "puzzle/model_{}".format("btl" if BACK_TO_LOGIT else "naive")
@@ -24,24 +34,21 @@ FIG_SIZE = (12, 9)
 MODEL_NAME = "CubeSae"
 MODEL_PATH = os.path.join(MODEL_DIR, "{}.pth".format(MODEL_NAME))
 
-LATENT_DIM_SQRT = int(np.sqrt(LATENT_DIM))
-N_ACTION_SQTR = int(np.sqrt(N_ACTION))
-
-def save_action_histogram(all_a, e, temp):
+def save_action_histogram(all_a, e, temp, n_bins):
     all_a = torch.argmax(all_a.squeeze(), dim=-1).detach().cpu()
     fig = plt.figure(figsize=FIG_SIZE)
     fig.suptitle('Epoch {}'.format(e), fontsize=12)
-    plt.hist(all_a.numpy(), bins=N_ACTION)
+    plt.hist(all_a.numpy(), bins=n_bins)
     unique_a = torch.unique(all_a).shape[0]
     plt.title('Action used: {}/{} in {} test examples, Temp: ({:.2f}, {:.2f})'.format(
-        unique_a, N_ACTION, VALIDATION_EXAMPLES, temp[0], temp[1]), fontsize=8
+        unique_a, n_bins, VALIDATION_EXAMPLES, temp[0], temp[1]), fontsize=8
     )
     plt.savefig(os.path.join(ACTION_DIR, "{}.png".format(e)))
     plt.close(fig)
     print("{} action used".format(unique_a))
     return unique_a
 
-def save_image(output, b_o1, b_o2, e, temp):
+def save_image(output, b_o1, b_o2, e, temp, n_latent_z, n_latent_a):
     def show_img(ax, img, t, set_title=False):
         ax.axes.xaxis.set_visible(False)
         ax.axes.yaxis.set_visible(False)
@@ -74,16 +81,16 @@ def save_image(output, b_o1, b_o2, e, temp):
         show_img(axs[i,2], o2, r"$o_2$", set_title)
         show_img(axs[i,3], recon_o2, r"$\tilde{o_2}$", set_title)
         show_img(axs[i,4], recon_tilde, r"$\tilde{\tilde{o_2}}$", set_title)
-        show_img(axs[i,5], z1.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"$z_1$", set_title)
-        show_img(axs[i,6], z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"$z_2$", set_title)
-        show_img(axs[i,7], recon_z2.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"$\tilde{z_2}$", set_title)
-        show_img(axs[i,8], (z2 - recon_z2).view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"$z_2 - \tilde{z_2}$", set_title)
+        show_img(axs[i,5], z1.view(n_latent_z, n_latent_z), r"$z_1$", set_title)
+        show_img(axs[i,6], z2.view(n_latent_z, n_latent_z), r"$z_2$", set_title)
+        show_img(axs[i,7], recon_z2.view(n_latent_z, n_latent_z), r"$\tilde{z_2}$", set_title)
+        show_img(axs[i,8], (z2 - recon_z2).view(n_latent_z, n_latent_z), r"$z_2 - \tilde{z_2}$", set_title)
         if not BACK_TO_LOGIT:
-            show_img(axs[i,-4], (z2 - z1).view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), r"$z_2 - z1$", set_title)
-            show_img(axs[i,-3], add.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), "$add$", set_title)
-            show_img(axs[i,-2], delete.view(LATENT_DIM_SQRT, LATENT_DIM_SQRT), "$delete$", set_title)
+            show_img(axs[i,-4], (z2 - z1).view(n_latent_z, n_latent_z), r"$z_2 - z1$", set_title)
+            show_img(axs[i,-3], add.view(n_latent_z, n_latent_z), "$add$", set_title)
+            show_img(axs[i,-2], delete.view(n_latent_z, n_latent_z), "$delete$", set_title)
 
-        show_img(axs[i,-1], a.view(N_ACTION_SQTR, N_ACTION_SQTR), "$a$", set_title)
+        show_img(axs[i,-1], a.view(n_latent_a, n_latent_a), "$a$", set_title)
 
     plt.tight_layout()
     plt.savefig(os.path.join(SAMPLE_DIR, "{}.png".format(e)))
@@ -93,3 +100,11 @@ def save_image(output, b_o1, b_o2, e, temp):
 def load_model(vae):
     vae.load_state_dict(torch.load(MODEL_PATH))
     print(MODEL_PATH)
+
+
+def check_and_clip_grad_norm(model, norm_type=2, max_clip=20):
+    for name, p in model.named_parameters():
+        norm = torch.norm(p.grad.detach(), norm_type).to(device).item()
+        if norm > max_clip:
+            print("{}: {:.3f}".format(name, norm))
+            clip_grad_norm_([p], max_clip)

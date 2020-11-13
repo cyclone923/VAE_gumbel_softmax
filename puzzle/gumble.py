@@ -1,11 +1,5 @@
 import torch
-
-if torch.cuda.is_available():
-    device = 'cuda:0'
-    print("Using GPU")
-else:
-    device = 'cpu'
-    print("Using CPU")
+from puzzle.util import device
 
 def sample_gumbel(shape, eps=1e-20):
     U = torch.rand(shape).to(device)

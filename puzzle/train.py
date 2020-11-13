@@ -9,7 +9,7 @@ from puzzle.sae import CubeSae
 from puzzle.dataset import get_train_and_test_dataset, load_data
 from puzzle.gumble import device
 from puzzle.loss import total_loss
-from puzzle.util import save_action_histogram, save_image, MODEL_DIR, MODEL_PATH, IMG_DIR, BACK_TO_LOGIT
+from puzzle.util import save_action_histogram, check_and_clip_grad_norm, save_image, MODEL_DIR, MODEL_PATH, IMG_DIR, BACK_TO_LOGIT
 from puzzle.make_gif import to_gif
 import sys
 
@@ -45,6 +45,7 @@ def train(dataloader, vae, optimizer, temp, add_regularization):
         if add_regularization:
             loss += sparsity + latent_loss
         loss.backward()
+        check_and_clip_grad_norm(vae)
         train_loss += loss.item()
         optimizer.step()
 
@@ -72,10 +73,14 @@ def test(dataloader, vae, e, temp):
             loss = image_loss + latent_loss + spasity
             validation_loss += loss.item()
             if i == 0:
-                save_image(output, o1+ noise1, o2+ noise1, e, temp)
+                save_image(
+                    output, o1+ noise1, o2+ noise1, e, temp,
+                    n_latent_z=int(np.sqrt(vae.sae.SAE_LATENT_DIM)), n_latent_a=int(np.sqrt(vae.sae.N_ACTION))
+                )
             all_a.append(output[-3])
             break
-        n_action = save_action_histogram(torch.cat(all_a, dim=0), e, temp)
+
+        save_action_histogram(torch.cat(all_a, dim=0), e, temp, n_bins=int(np.sqrt(vae.sae.N_ACTION)))
 
     print("\nVALIDATION Total {:.5f}, Rec: {:.5f}, Latent: {:.5f}, Spasity: {:.5f}".format(
         validation_loss / len(dataloader), ep_image_loss/len(dataloader), ep_latent_loss/len(dataloader), ep_spasity/len(dataloader))
