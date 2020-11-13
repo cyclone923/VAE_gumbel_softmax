@@ -102,7 +102,7 @@ def load_model(vae):
     print(MODEL_PATH)
 
 
-def check_and_clip_grad_norm(model, max_clip=0.3, norm_type=2):
+def check_and_clip_grad_norm(model, max_clip=5, norm_type=2):
     total_norm = torch.norm(
         torch.stack(
             [torch.norm(p.grad.detach(), norm_type).to(device) for p in model.parameters()]
