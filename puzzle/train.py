@@ -75,12 +75,12 @@ def test(dataloader, vae, e, temp):
             if i == 0:
                 save_image(
                     output, o1+ noise1, o2+ noise1, e, temp,
-                    n_latent_z=int(np.sqrt(vae.aae.SAE_LATENT_DIM)), n_latent_a=int(np.sqrt(vae.aae.N_ACTION))
+                    n_latent_z=int(np.sqrt(vae.aae.AAE_LATENT_DIM)), n_latent_a=int(np.sqrt(vae.aae.AAE_N_ACTION))
                 )
             all_a.append(output[-3])
             break
 
-        save_action_histogram(torch.cat(all_a, dim=0), e, temp, n_bins=int(np.sqrt(vae.aae.N_ACTION)))
+        save_action_histogram(torch.cat(all_a, dim=0), e, temp, n_bins=int(np.sqrt(vae.aae.AAE_N_ACTION)))
 
     print("\nVALIDATION Total {:.5f}, Rec: {:.5f}, Latent: {:.5f}, Spasity: {:.5f}".format(
         validation_loss / len(dataloader), ep_image_loss/len(dataloader), ep_latent_loss/len(dataloader), ep_spasity/len(dataloader))
