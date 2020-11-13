@@ -30,6 +30,7 @@ def train(dataloader, vae, optimizer, temp, add_regularization):
     vae.train()
     train_loss = 0
     ep_image_loss, ep_latent_loss, ep_spasity = 0, 0, 0
+    ep_grad_clip, ep_grad_no_clip = 0, 0
     for i, (data, data_next) in enumerate(dataloader):
         o1 = data.to(device)
         o2 = data_next.to(device)
@@ -45,12 +46,23 @@ def train(dataloader, vae, optimizer, temp, add_regularization):
         if add_regularization:
             loss += sparsity + latent_loss
         loss.backward()
-        check_and_clip_grad_norm(vae)
+        grad_clip, grad_no_clip = check_and_clip_grad_norm(vae)
+        ep_grad_clip += grad_clip
+        ep_grad_no_clip += grad_no_clip
         train_loss += loss.item()
         optimizer.step()
 
-    print("\nTRAINING Total {:.5f}, Rec: {:.5f}, Latent: {:.5f}, Spasity: {:.5f}".format(
-        train_loss / len(dataloader), ep_image_loss/len(dataloader), ep_latent_loss/len(dataloader), ep_spasity/len(dataloader))
+    print(
+        "\nTRAINING Total {:.5f}, Rec: {:.5f}, Latent: {:.5f}, Spasity: {:.5f}, Grad_Norm: ({:.5f}, {:.5f})".format
+        (
+
+        train_loss / len(dataloader),
+        ep_image_loss/len(dataloader),
+        ep_latent_loss/len(dataloader),
+        ep_spasity/len(dataloader),
+        ep_grad_clip / len(dataloader),
+        ep_grad_no_clip / len(dataloader)
+        )
     )
     return train_loss / len(dataloader)
 
@@ -83,7 +95,10 @@ def test(dataloader, vae, e, temp):
         save_action_histogram(torch.cat(all_a, dim=0), e, temp, n_bins=int(np.sqrt(vae.aae.AAE_N_ACTION)))
 
     print("\nVALIDATION Total {:.5f}, Rec: {:.5f}, Latent: {:.5f}, Spasity: {:.5f}".format(
-        validation_loss / len(dataloader), ep_image_loss/len(dataloader), ep_latent_loss/len(dataloader), ep_spasity/len(dataloader))
+        validation_loss / len(dataloader),
+        ep_image_loss/len(dataloader),
+        ep_latent_loss/len(dataloader),
+        ep_spasity/len(dataloader))
     )
     return validation_loss / len(dataloader)
 
