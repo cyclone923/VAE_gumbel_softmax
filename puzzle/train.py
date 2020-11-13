@@ -19,7 +19,7 @@ ANNEAL_RATE_SAE = 0.06
 
 TEMP_BEGIN_AAE = 5
 TEMP_MIN_AAE = 0.1
-ANNEAL_RATE_AAE = 0.007
+ANNEAL_RATE_AAE = 0.015
 TRAIN_BZ = 2000
 TEST_BZ = 2000
 ADD_REG_EPOCH = 0
@@ -112,7 +112,7 @@ def run(n_epoch):
     vae = CubeSae(BACK_TO_LOGIT).to(device)
     # load_model(vae)
     optimizer = Adam(vae.parameters(), lr=1e-3)
-    scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 100 else 1)
+    scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 100 else 0.1)
     best_loss = float('inf')
     best_epoch = 0
     for e in range(n_epoch):
@@ -142,5 +142,5 @@ if __name__ == "__main__":
     os.makedirs(os.path.join(IMG_DIR, "actions"), exist_ok=True)
     os.makedirs(os.path.join(IMG_DIR, "samples"), exist_ok=True)
     os.makedirs(MODEL_DIR, exist_ok=True)
-    run(1000)
+    run(300)
     to_gif()
