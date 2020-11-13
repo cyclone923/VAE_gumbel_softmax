@@ -130,6 +130,6 @@ class CubeSae(nn.Module):
         temp1, temp2, add_noise = temp
         recon_o1, z1 = self.sae(o1, temp1, add_noise)
         recon_o2, z2 = self.sae(o2, temp1, add_noise)
-        z_recon, a, add, delete = self.aae(z1.detach(), z2.detach(), temp2, add_noise)
+        z_recon, a, add, delete = self.aae(z1.detach(), z2.detach(), temp, add_noise)
         recon_o2_tilda = self.sae.decode(z_recon)
         return recon_o1, recon_o2, recon_o2_tilda, z1, z2, z_recon, a, add, delete

@@ -14,19 +14,18 @@ from puzzle.make_gif import to_gif
 import sys
 
 TEMP_BEGIN_SAE = 5
-TEMP_MIN_SAE = 0.7
+TEMP_MIN_SAE = 0.5
 ANNEAL_RATE_SAE = 0.06
 
 TEMP_BEGIN_AAE = 5
-TEMP_MIN_AAE = 0.5
+TEMP_MIN_AAE = 1
 ANNEAL_RATE_AAE = 0.01
 TRAIN_BZ = 2000
 TEST_BZ = 2000
-ADD_REG_EPOCH = 0
 
 torch.manual_seed(0)
 
-def train(dataloader, vae, optimizer, temp, add_regularization):
+def train(dataloader, vae, optimizer, temp):
     vae.train()
     train_loss = 0
     ep_image_loss, ep_latent_loss, ep_spasity = 0, 0, 0
@@ -42,9 +41,7 @@ def train(dataloader, vae, optimizer, temp, add_regularization):
         ep_image_loss += image_loss.item()
         ep_latent_loss += latent_loss.item()
         ep_spasity += sparsity.item()
-        loss = image_loss
-        if add_regularization:
-            loss += sparsity + latent_loss
+        loss = image_loss + sparsity + latent_loss
         loss.backward()
         grad_norm = check_and_clip_grad_norm(vae)
         ep_grad_norm += grad_norm
@@ -89,7 +86,7 @@ def test(dataloader, vae, e, temp):
             all_a.append(output[-3])
             break
 
-        save_action_histogram(torch.cat(all_a, dim=0), e, temp, n_bins=int(np.sqrt(vae.aae.AAE_N_ACTION)))
+        save_action_histogram(torch.cat(all_a, dim=0), e, temp, n_bins=vae.aae.AAE_N_ACTION)
 
     print("\nVALIDATION Total {:.5f}, Rec: {:.5f}, Latent: {:.5f}, Spasity: {:.5f}".format(
         validation_loss / len(dataloader),
@@ -115,11 +112,11 @@ def run(n_epoch):
     for e in range(n_epoch):
         sys.stdout.flush()
         temp1 = np.maximum(TEMP_BEGIN_SAE * np.exp(-ANNEAL_RATE_SAE * e), TEMP_MIN_SAE)
-        temp2 = np.maximum(TEMP_BEGIN_AAE * np.exp(-ANNEAL_RATE_AAE * max(e - ADD_REG_EPOCH, 0)), TEMP_MIN_AAE)
+        temp2 = np.maximum(TEMP_BEGIN_AAE * np.exp(-ANNEAL_RATE_AAE * e), TEMP_MIN_AAE)
         print("\n" + "-"*50)
         print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
-        train_loss = train(train_loader, vae, optimizer, (temp1, temp2, True), e >= ADD_REG_EPOCH)
-        validation_loss = test(test_loader, vae, e, (temp1, temp2, False))
+        train_loss = train(train_loader, vae, optimizer, (temp1, temp2, True))
+        validation_loss = test(test_loader, vae, e, (0, 0, False))
         print("\nBest test loss {:.5f} in epoch {}".format(best_loss, best_epoch))
         if validation_loss < best_loss:
             print("Save model to {}".format(MODEL_PATH))
@@ -139,5 +136,5 @@ if __name__ == "__main__":
     os.makedirs(os.path.join(IMG_DIR, "actions"), exist_ok=True)
     os.makedirs(os.path.join(IMG_DIR, "samples"), exist_ok=True)
     os.makedirs(MODEL_DIR, exist_ok=True)
-    run(1000)
+    run(2000)
     to_gif()
