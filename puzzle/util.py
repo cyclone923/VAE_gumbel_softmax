@@ -103,18 +103,14 @@ def load_model(vae):
 
 
 def check_and_clip_grad_norm(model, max_clip=0.3, norm_type=2):
-    avg_norm_without_clip = 0
-    avg_norm_with_clip = 0
-    module_cnt = 0
-    for name, p in model.named_parameters():
-        norm = torch.norm(p.grad.detach(), norm_type).to(device).item()
-        avg_norm_without_clip += norm
-        module_cnt += 1
-        if norm > max_clip:
-            print("Clip grad for {}: {:.3f}".format(name, norm))
-            clip_grad_norm_([p], max_clip)
-            avg_norm_with_clip += max_clip
-        else:
-            avg_norm_with_clip += norm
-    return avg_norm_with_clip / module_cnt, avg_norm_without_clip / module_cnt
+    total_norm = torch.norm(
+        torch.stack(
+            [torch.norm(p.grad.detach(), norm_type).to(device) for p in model.parameters()]
+        ),
+        norm_type
+    )
+    clip_grad_norm_(model.parameters(), max_clip)
+    if total_norm > max_clip:
+        print("Total norm: {:.5f}".format(total_norm))
+    return total_norm
 

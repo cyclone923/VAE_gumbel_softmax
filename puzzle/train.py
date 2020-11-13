@@ -30,7 +30,7 @@ def train(dataloader, vae, optimizer, temp, add_regularization):
     vae.train()
     train_loss = 0
     ep_image_loss, ep_latent_loss, ep_spasity = 0, 0, 0
-    ep_grad_clip, ep_grad_no_clip = 0, 0
+    ep_grad_norm = 0
     for i, (data, data_next) in enumerate(dataloader):
         o1 = data.to(device)
         o2 = data_next.to(device)
@@ -46,22 +46,20 @@ def train(dataloader, vae, optimizer, temp, add_regularization):
         if add_regularization:
             loss += sparsity + latent_loss
         loss.backward()
-        grad_clip, grad_no_clip = check_and_clip_grad_norm(vae)
-        ep_grad_clip += grad_clip
-        ep_grad_no_clip += grad_no_clip
+        grad_norm, = check_and_clip_grad_norm(vae)
+        ep_grad_norm += grad_norm
         train_loss += loss.item()
         optimizer.step()
 
     print(
-        "\nTRAINING Total {:.5f}, Rec: {:.5f}, Latent: {:.5f}, Spasity: {:.5f}, Grad_Norm: ({:.5f}, {:.5f})".format
+        "\nTRAINING Total {:.5f}, Rec: {:.5f}, Latent: {:.5f}, Spasity: {:.5f}, Grad_Norm: {:.5f}".format
         (
 
         train_loss / len(dataloader),
         ep_image_loss/len(dataloader),
         ep_latent_loss/len(dataloader),
         ep_spasity/len(dataloader),
-        ep_grad_clip / len(dataloader),
-        ep_grad_no_clip / len(dataloader)
+        ep_grad_norm / len(dataloader),
         )
     )
     return train_loss / len(dataloader)
