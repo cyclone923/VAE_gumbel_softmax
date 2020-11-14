@@ -29,7 +29,8 @@ IMG_DIR = "puzzle/image_{}".format("btl" if BACK_TO_LOGIT else "naive")
 MODEL_DIR = "puzzle/model_{}".format("btl" if BACK_TO_LOGIT else "naive")
 ACTION_DIR = os.path.join(IMG_DIR, "actions")
 SAMPLE_DIR = os.path.join(IMG_DIR, "samples")
-FIG_SIZE = (12, 9)
+SAMPLE_DIR_ROUND = os.path.join(IMG_DIR, "samples_round")
+FIG_SIZE = (8, 6)
 
 MODEL_NAME = "CubeSae"
 MODEL_PATH = os.path.join(MODEL_DIR, "{}.pth".format(MODEL_NAME))
@@ -48,7 +49,7 @@ def save_action_histogram(all_a, e, temp, n_bins):
     print("{} action used".format(unique_a))
     return unique_a
 
-def save_image(output, b_o1, b_o2, e, temp, n_latent_z, n_latent_a):
+def save_image(output, b_o1, b_o2, e, temp, n_latent_z, n_latent_a, round=False):
     def show_img(ax, img, t, set_title=False):
         ax.axes.xaxis.set_visible(False)
         ax.axes.yaxis.set_visible(False)
@@ -60,6 +61,8 @@ def save_image(output, b_o1, b_o2, e, temp, n_latent_z, n_latent_a):
     N_SMAPLE= 10
     selected = torch.arange(start=0, end=N_SMAPLE)
     pre_process = lambda img: img[selected].squeeze().detach().cpu() if img is not None else None
+    if round:
+        pre_process = lambda img: torch.round(pre_process(img))
 
     fig, axs = plt.subplots(N_SMAPLE, 10 + (0 if BACK_TO_LOGIT else 3), figsize=FIG_SIZE)
     fig.suptitle('Epoch {}, Temp: ({:.2f}, {:.2f})'.format(e, temp[0], temp[1]), fontsize=12)
@@ -93,7 +96,10 @@ def save_image(output, b_o1, b_o2, e, temp, n_latent_z, n_latent_a):
         show_img(axs[i,-1], a.view(n_latent_a, n_latent_a), "$a$", set_title)
 
     plt.tight_layout()
-    plt.savefig(os.path.join(SAMPLE_DIR, "{}.png".format(e)))
+    if not round:
+        plt.savefig(os.path.join(SAMPLE_DIR, "{}.png".format(e)))
+    else:
+        plt.savefig(os.path.join(SAMPLE_DIR_ROUND, "{}.png".format(e)))
     plt.close(fig)
 
 

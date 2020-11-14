@@ -9,7 +9,8 @@ from puzzle.sae import CubeSae
 from puzzle.dataset import get_train_and_test_dataset, load_data
 from puzzle.gumble import device
 from puzzle.loss import total_loss
-from puzzle.util import save_action_histogram, check_and_clip_grad_norm, save_image, MODEL_DIR, MODEL_PATH, IMG_DIR, BACK_TO_LOGIT
+from puzzle.util import save_action_histogram, check_and_clip_grad_norm, save_image, \
+    MODEL_DIR, MODEL_PATH, IMG_DIR, BACK_TO_LOGIT, SAMPLE_DIR, SAMPLE_DIR_ROUND, ACTION_DIR
 from puzzle.make_gif import to_gif
 import sys
 
@@ -79,10 +80,13 @@ def test(dataloader, vae, e, temp):
             loss = image_loss + latent_loss + spasity
             validation_loss += loss.item()
             if i == 0:
-                save_image(
-                    output, o1+ noise1, o2+ noise1, e, temp,
-                    n_latent_z=int(np.sqrt(vae.aae.AAE_LATENT_DIM)), n_latent_a=int(np.sqrt(vae.aae.AAE_N_ACTION))
-                )
+                for r in [True, False]:
+                    save_image(
+                        output, o1+ noise1, o2+ noise1, e, temp,
+                        n_latent_z=int(np.sqrt(vae.aae.AAE_LATENT_DIM)),
+                        n_latent_a=int(np.sqrt(vae.aae.AAE_N_ACTION)),
+                        round=r
+                    )
             all_a.append(output[-3])
             break
 
@@ -116,7 +120,7 @@ def run(n_epoch):
         print("\n" + "-"*50)
         print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
         train_loss = train(train_loader, vae, optimizer, (temp1, temp2, True))
-        validation_loss = test(test_loader, vae, e, (0, 0, False))
+        validation_loss = test(test_loader, vae, e, (temp1, temp2, False))
         print("\nBest test loss {:.5f} in epoch {}".format(best_loss, best_epoch))
         if validation_loss < best_loss:
             print("Save model to {}".format(MODEL_PATH))
@@ -132,9 +136,9 @@ if __name__ == "__main__":
     except:
         pass
 
-    os.makedirs(MODEL_DIR)
-    os.makedirs(os.path.join(IMG_DIR, "actions"), exist_ok=True)
-    os.makedirs(os.path.join(IMG_DIR, "samples"), exist_ok=True)
+    os.makedirs(ACTION_DIR, exist_ok=True)
+    os.makedirs(SAMPLE_DIR, exist_ok=True)
+    os.makedirs(SAMPLE_DIR_ROUND, exist_ok=True)
     os.makedirs(MODEL_DIR, exist_ok=True)
     run(2000)
     to_gif()
