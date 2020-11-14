@@ -62,13 +62,13 @@ def save_image(output, b_o1, b_o2, e, temp, n_latent_z, n_latent_a, round=False)
     selected = torch.arange(start=0, end=N_SMAPLE)
     pre_process = lambda img: img[selected].squeeze().detach().cpu() if img is not None else None
     if round:
-        pre_process = lambda img: torch.round(pre_process(img))
+        pre_process_and_round = lambda img: torch.round(pre_process(img)) if img is not None else None
 
     fig, axs = plt.subplots(N_SMAPLE, 10 + (0 if BACK_TO_LOGIT else 3), figsize=FIG_SIZE)
     fig.suptitle('Epoch {}, Temp: ({:.2f}, {:.2f})'.format(e, temp[0], temp[1]), fontsize=12)
 
     for i, single in enumerate(
-            zip(*([pre_process(b_o1), pre_process(b_o2)] + [pre_process(i) for i in output if i is not None]))
+            zip(*([pre_process_and_round(b_o1), pre_process_and_round(b_o2)] + [pre_process_and_round(i) for i in output if i is not None]))
     ):
         if BACK_TO_LOGIT:
             o1, o2, recon_o1, recon_o2, recon_tilde, z1, z2, recon_z2, a = single
