@@ -15,11 +15,11 @@ from puzzle.make_gif import to_gif
 import sys
 
 TEMP_BEGIN_SAE = 5
-TEMP_MIN_SAE = 1
+TEMP_MIN_SAE = 0.3
 ANNEAL_RATE_SAE = 0.06
 
 TEMP_BEGIN_AAE = 5
-TEMP_MIN_AAE = 3
+TEMP_MIN_AAE = 0.1
 ANNEAL_RATE_AAE = 0.01
 TRAIN_BZ = 2000
 TEST_BZ = 2000
