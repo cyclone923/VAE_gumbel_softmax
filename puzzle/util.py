@@ -58,7 +58,7 @@ def save_image(output, b_o1, b_o2, e, temp, n_latent_z, n_latent_a, round=False)
             ax.set_title(t, fontsize=8)
         ax.imshow(img, cmap='gray')
 
-    N_SMAPLE= 10
+    N_SMAPLE= 20
     selected = torch.arange(start=0, end=N_SMAPLE)
     select = lambda img: img[selected].squeeze().detach().cpu() if img is not None else None
     if round:
