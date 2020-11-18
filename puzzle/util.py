@@ -30,7 +30,7 @@ MODEL_DIR = "puzzle/model_{}".format("btl" if BACK_TO_LOGIT else "naive")
 ACTION_DIR = os.path.join(IMG_DIR, "actions")
 SAMPLE_DIR = os.path.join(IMG_DIR, "samples")
 SAMPLE_DIR_ROUND = os.path.join(IMG_DIR, "samples_round")
-FIG_SIZE = (8, 6)
+FIG_SIZE = (8, 16)
 
 MODEL_NAME = "CubeSae"
 MODEL_PATH = os.path.join(MODEL_DIR, "{}.pth".format(MODEL_NAME))
