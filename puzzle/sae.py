@@ -91,7 +91,7 @@ class Aae(nn.Module):
         h3 = self.fc3(torch.cat([s, h2], dim=2))
         return gumbel_softmax(h3.view(-1, 1, self.AAE_N_ACTION), temp, add_noise)
 
-    def decode(self, s, a, add_noise):
+    def decode(self, s, a):
         h4 = bn_and_dpt(torch.relu(self.fc4(a)), self.bn4, self.dpt4)
         h5 = bn_and_dpt(torch.relu(self.fc5(h4)), self.bn5, self.dpt5)
         h6 = self.fc6(h5)
