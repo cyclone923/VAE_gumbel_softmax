@@ -82,14 +82,14 @@ def test(dataloader, vae, e, temp):
             validation_loss += loss.item()
             if i == 0:
                 save_image(
-                    output, o1+ noise1, o2+ noise2, e, temp,
+                    output, o1 + noise1, o2 + noise2, e, temp,
                     n_latent_z=int(np.sqrt(vae.aae.AAE_LATENT_DIM)),
                     n_latent_a=int(np.sqrt(vae.aae.AAE_N_ACTION)),
                     dir=SAMPLE_DIR
                 )
 
                 save_image(
-                    output_argmax, o1+ noise1, o2+ noise2, e, temp,
+                    output_argmax, o1 + noise1, o2 + noise2, e, temp,
                     n_latent_z=int(np.sqrt(vae.aae.AAE_LATENT_DIM)),
                     n_latent_a=int(np.sqrt(vae.aae.AAE_N_ACTION)),
                     dir=SAMPLE_DIR_ARGMAX

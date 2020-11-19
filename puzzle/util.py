@@ -103,7 +103,7 @@ def plot_loss(train_loss, validation_loss, n_epoch):
     plt.plot(train_loss, all_epoch)
     plt.plot(validation_loss, all_epoch)
     plt.legend(['train_loss', 'validation_loss'])
-    plt.savefig("loss.gif")
+    plt.savefig("loss.jpg")
     plt.close(fig)
 
 
