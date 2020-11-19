@@ -104,6 +104,15 @@ def save_image(output, b_o1, b_o2, e, temp, n_latent_z, n_latent_a, round=False)
         plt.savefig(os.path.join(SAMPLE_DIR_ROUND, "{}.png".format(e)))
     plt.close(fig)
 
+def plot_loss(train_loss, validation_loss, n_epoch):
+    fig = plt.figure(figsize=(6,8))
+    all_epoch = [i for i in range(n_epoch)]
+    plt.plot(train_loss, all_epoch)
+    plt.plot(validation_loss, all_epoch)
+    plt.legend(['train_loss', 'validation_loss'])
+    plt.savefig("loss.gif")
+    plt.close(fig)
+
 
 def load_model(vae):
     vae.load_state_dict(torch.load(MODEL_PATH))

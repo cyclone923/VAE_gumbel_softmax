@@ -59,7 +59,7 @@ def train(dataloader, vae, optimizer, temp):
         ep_grad_norm / len(dataloader),
         )
     )
-    return train_loss / len(dataloader)
+    return ep_latent_loss / len(dataloader)
 
 def test(dataloader, vae, e, temp):
     vae.eval()
@@ -98,7 +98,7 @@ def test(dataloader, vae, e, temp):
         ep_latent_loss/len(dataloader),
         ep_spasity/len(dataloader))
     )
-    return validation_loss / len(dataloader)
+    return ep_latent_loss / len(dataloader)
 
 def run(n_epoch):
     train_set, test_set, _, _ = get_train_and_test_dataset(*load_data())
@@ -113,6 +113,8 @@ def run(n_epoch):
     scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 100 else 0.1)
     best_loss = float('inf')
     best_epoch = 0
+    all_train_loss = []
+    all_validation_loss = []
     for e in range(n_epoch):
         sys.stdout.flush()
         temp1 = np.maximum(TEMP_BEGIN_SAE * np.exp(-ANNEAL_RATE_SAE * e), TEMP_MIN_SAE)
@@ -121,6 +123,8 @@ def run(n_epoch):
         print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
         train_loss = train(train_loader, vae, optimizer, (temp1, temp2, True))
         validation_loss = test(test_loader, vae, e, (temp1, temp2, False))
+        all_train_loss.append(train_loss)
+        all_validation_loss.append(validation_loss)
         print("\nBest test loss {:.5f} in epoch {}".format(best_loss, best_epoch))
         if validation_loss < best_loss:
             print("Save model to {}".format(MODEL_PATH))
