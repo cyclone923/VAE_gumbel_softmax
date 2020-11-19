@@ -91,7 +91,7 @@ class Aae(nn.Module):
         h3 = self.fc3(torch.cat([s, h2], dim=2))
         return gumbel_softmax(h3.view(-1, 1, self.AAE_N_ACTION), temp, add_noise)
 
-    def decode(self, s, a):
+    def decode(self, s, a, temp, add_noise):
         h4 = bn_and_dpt(torch.relu(self.fc4(a)), self.bn4, self.dpt4)
         h5 = bn_and_dpt(torch.relu(self.fc5(h4)), self.bn5, self.dpt5)
         h6 = self.fc6(h5)
@@ -100,12 +100,12 @@ class Aae(nn.Module):
             s = self.bn_input(s)
             h6 = h6.view(-1, self.AAE_LATENT_DIM, 1)
             h6 = self.bn_effect(h6)
-            s = torch.sigmoid(h6+s)
+            s = gumbel_softmax(h6+s, temp, add_noise)
             add = None
             delete = None
         else:
             h6 = h6.view(-1, self.AAE_LATENT_DIM, 3)
-            h6 = torch.softmax(h6, dim=-1)
+            h6 = gumbel_softmax(h6, temp, add_noise)
             add = h6[:,:,[0]]
             delete = h6[:,:,[1]]
             s = torch.min(s, 1-delete)
@@ -115,7 +115,7 @@ class Aae(nn.Module):
 
     def forward(self, s, z, temp, add_noise):
         a = self.encode(s, z, temp, add_noise)
-        recon_z, add, delete = self.decode(s, a)
+        recon_z, add, delete = self.decode(s, a, temp, add_noise)
         return recon_z, a, add, delete
 
 

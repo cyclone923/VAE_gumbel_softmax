@@ -119,7 +119,7 @@ def run(n_epoch):
     vae = CubeSae(BACK_TO_LOGIT).to(device)
     # load_model(vae)
     optimizer = Adam(vae.parameters(), lr=1e-3)
-    scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 500 else 0.1)
+    scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 300 else 0.1)
     best_loss = float('inf')
     best_epoch = 0
     all_train_loss = []
