@@ -15,11 +15,11 @@ from puzzle.make_gif import to_gif
 import sys
 
 TEMP_BEGIN_SAE = 5
-TEMP_MIN_SAE = 0.1
+TEMP_MIN_SAE = 1
 ANNEAL_RATE_SAE = 0.06
 
 TEMP_BEGIN_AAE = 5
-TEMP_MIN_AAE = 0.8
+TEMP_MIN_AAE = 0.7
 ANNEAL_RATE_AAE = 0.01
 TRAIN_BZ = 2000
 TEST_BZ = 2000
@@ -119,7 +119,7 @@ def run(n_epoch):
     vae = CubeSae(BACK_TO_LOGIT).to(device)
     # load_model(vae)
     optimizer = Adam(vae.parameters(), lr=1e-3)
-    scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 100 else 0.1)
+    scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 500 else 0.1)
     best_loss = float('inf')
     best_epoch = 0
     all_train_loss = []
@@ -157,5 +157,5 @@ if __name__ == "__main__":
     os.makedirs(SAMPLE_DIR, exist_ok=True)
     os.makedirs(SAMPLE_DIR_ARGMAX, exist_ok=True)
     os.makedirs(MODEL_DIR, exist_ok=True)
-    run(1000)
+    run(10)
     to_gif(PLOT_DIR)
