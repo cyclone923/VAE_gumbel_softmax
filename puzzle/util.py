@@ -98,7 +98,7 @@ def save_image(output, b_o1, b_o2, e, temp, n_latent_z, n_latent_a, dir):
     plt.close(fig)
 
 def plot_loss(train_loss, validation_loss, n_epoch, plot_dir):
-    fig, ax = plt.figure(figsize=(8,6))
+    fig = plt.figure(figsize=(8,6))
     all_epoch = [i for i in range(n_epoch)]
     plt.title('Latent variable reconstruction loss')
     plt.plot(all_epoch, train_loss)
