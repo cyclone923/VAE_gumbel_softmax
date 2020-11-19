@@ -10,7 +10,7 @@ from puzzle.dataset import get_train_and_test_dataset, load_data
 from puzzle.gumble import device
 from puzzle.loss import total_loss
 from puzzle.util import save_action_histogram, check_and_clip_grad_norm, save_image, \
-    MODEL_DIR, MODEL_PATH, IMG_DIR, BACK_TO_LOGIT, SAMPLE_DIR, SAMPLE_DIR_ROUND, ACTION_DIR
+    MODEL_DIR, MODEL_PATH, IMG_DIR, BACK_TO_LOGIT, SAMPLE_DIR, SAMPLE_DIR_ARGMAX, ACTION_DIR
 from puzzle.make_gif import to_gif
 import sys
 
@@ -19,7 +19,7 @@ TEMP_MIN_SAE = 0.3
 ANNEAL_RATE_SAE = 0.06
 
 TEMP_BEGIN_AAE = 5
-TEMP_MIN_AAE = 0.8
+TEMP_MIN_AAE = 0.6
 ANNEAL_RATE_AAE = 0.01
 TRAIN_BZ = 2000
 TEST_BZ = 2000
@@ -73,6 +73,7 @@ def test(dataloader, vae, e, temp):
             noise1 = torch.normal(mean=0, std=0.4, size=o1.size()).to(device)
             noise2 = torch.normal(mean=0, std=0.4, size=o2.size()).to(device)
             output = vae(o1 + noise1, o2 + noise2, temp)
+            output_argmax = vae(o1 + noise1, o2 + noise2, temp)
             image_loss, latent_loss, spasity = total_loss(output, o1, o2)
             ep_image_loss += image_loss.item()
             ep_latent_loss += latent_loss.item()
@@ -80,13 +81,19 @@ def test(dataloader, vae, e, temp):
             loss = image_loss + latent_loss + spasity
             validation_loss += loss.item()
             if i == 0:
-                for r in [True, False]:
-                    save_image(
-                        output, o1+ noise1, o2+ noise1, e, temp,
-                        n_latent_z=int(np.sqrt(vae.aae.AAE_LATENT_DIM)),
-                        n_latent_a=int(np.sqrt(vae.aae.AAE_N_ACTION)),
-                        round=r
-                    )
+                save_image(
+                    output, o1+ noise1, o2+ noise1, e, temp,
+                    n_latent_z=int(np.sqrt(vae.aae.AAE_LATENT_DIM)),
+                    n_latent_a=int(np.sqrt(vae.aae.AAE_N_ACTION)),
+                    dir=SAMPLE_DIR
+                )
+
+                save_image(
+                    output_argmax, o1+ noise1, o2+ noise1, e, temp,
+                    n_latent_z=int(np.sqrt(vae.aae.AAE_LATENT_DIM)),
+                    n_latent_a=int(np.sqrt(vae.aae.AAE_N_ACTION)),
+                    dir=SAMPLE_DIR_ARGMAX
+                )
             all_a.append(output[-3])
             break
 
@@ -142,7 +149,7 @@ if __name__ == "__main__":
 
     os.makedirs(ACTION_DIR, exist_ok=True)
     os.makedirs(SAMPLE_DIR, exist_ok=True)
-    os.makedirs(SAMPLE_DIR_ROUND, exist_ok=True)
+    os.makedirs(SAMPLE_DIR_ARGMAX, exist_ok=True)
     os.makedirs(MODEL_DIR, exist_ok=True)
-    run(1000)
+    run(5)
     to_gif()

@@ -1,10 +1,10 @@
 import imageio
 import os
-from puzzle.util import SAMPLE_DIR, SAMPLE_DIR_ROUND, ACTION_DIR, BACK_TO_LOGIT
+from puzzle.util import SAMPLE_DIR, SAMPLE_DIR_ARGMAX, ACTION_DIR, BACK_TO_LOGIT
 
 
 def to_gif():
-    for dir, out_name in zip([SAMPLE_DIR, SAMPLE_DIR_ROUND, ACTION_DIR], ["samples", "samples_round", "actions"]):
+    for dir, out_name in zip([SAMPLE_DIR, SAMPLE_DIR_ARGMAX, ACTION_DIR], ["samples", "samples_argmax", "actions"]):
         images = []
         for filename in sorted(os.listdir(dir), key=lambda x: int(x.split(".")[0])):
             images.append(imageio.imread(os.path.join(dir, filename)))
