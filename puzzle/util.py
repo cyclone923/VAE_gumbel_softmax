@@ -98,10 +98,10 @@ def save_image(output, b_o1, b_o2, e, temp, n_latent_z, n_latent_a, dir):
     plt.close(fig)
 
 def plot_loss(train_loss, validation_loss, n_epoch, plot_dir):
-    fig = plt.figure(figsize=(6,8))
+    fig = plt.figure(figsize=(8,6))
     all_epoch = [i for i in range(n_epoch)]
-    plt.plot(train_loss, all_epoch)
-    plt.plot(validation_loss, all_epoch)
+    plt.plot(all_epoch, train_loss)
+    plt.plot(all_epoch, validation_loss)
     plt.legend(['train_loss', 'validation_loss'])
     plt.savefig("{}/loss.jpg".format(plot_dir))
     plt.close(fig)
