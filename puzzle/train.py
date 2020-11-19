@@ -19,7 +19,7 @@ TEMP_MIN_SAE = 0.1
 ANNEAL_RATE_SAE = 0.06
 
 TEMP_BEGIN_AAE = 5
-TEMP_MIN_AAE = 0.7
+TEMP_MIN_AAE = 0.8
 ANNEAL_RATE_AAE = 0.01
 TRAIN_BZ = 2000
 TEST_BZ = 2000
@@ -74,9 +74,9 @@ def test(dataloader, vae, e, temp):
             o2 = data_next.to(device)
             noise1 = torch.normal(mean=0, std=0.4, size=o1.size()).to(device)
             noise2 = torch.normal(mean=0, std=0.4, size=o2.size()).to(device)
-            output = vae(o1 + noise1, o2 + noise2, temp)
+            output_continous = vae(o1 + noise1, o2 + noise2, temp)
             output_argmax = vae(o1 + noise1, o2 + noise2, (0, 0, False))
-            image_loss, latent_loss, spasity = total_loss(output, o1, o2)
+            image_loss, latent_loss, spasity = total_loss(output_argmax, o1, o2)
             ep_image_loss += image_loss.item()
             ep_latent_loss += latent_loss.item()
             ep_spasity += spasity.item()
@@ -84,7 +84,7 @@ def test(dataloader, vae, e, temp):
             validation_loss += loss.item()
             if i == 0:
                 save_image(
-                    output, o1 + noise1, o2 + noise2, e, temp,
+                    output_continous, o1 + noise1, o2 + noise2, e, temp,
                     n_latent_z=int(np.sqrt(vae.aae.AAE_LATENT_DIM)),
                     n_latent_a=int(np.sqrt(vae.aae.AAE_N_ACTION)),
                     dir=SAMPLE_DIR
