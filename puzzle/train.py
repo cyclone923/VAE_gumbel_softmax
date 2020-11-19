@@ -24,6 +24,8 @@ ANNEAL_RATE_AAE = 0.01
 TRAIN_BZ = 2000
 TEST_BZ = 2000
 
+PLOT_DIR = "plot"
+
 torch.manual_seed(0)
 
 def train(dataloader, vae, optimizer, temp):
@@ -139,19 +141,21 @@ def run(n_epoch):
             best_loss = validation_loss
             best_epoch = e
         scheculer.step()
-    plot_loss(all_train_loss, all_validation_loss, n_epoch)
+    plot_loss(all_train_loss, all_validation_loss, n_epoch, PLOT_DIR)
 
 
 if __name__ == "__main__":
     try:
         shutil.rmtree(IMG_DIR)
         shutil.rmtree(MODEL_DIR)
+        shutil.rmtree(PLOT_DIR)
     except:
         pass
 
     os.makedirs(ACTION_DIR, exist_ok=True)
+    os.makedirs(PLOT_DIR, exist_ok=True)
     os.makedirs(SAMPLE_DIR, exist_ok=True)
     os.makedirs(SAMPLE_DIR_ARGMAX, exist_ok=True)
     os.makedirs(MODEL_DIR, exist_ok=True)
     run(5)
-    to_gif()
+    to_gif(PLOT_DIR)
