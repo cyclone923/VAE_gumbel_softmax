@@ -119,7 +119,7 @@ def run(n_epoch):
     vae = CubeSae(BACK_TO_LOGIT).to(device)
     # load_model(vae)
     optimizer = Adam(vae.parameters(), lr=1e-3)
-    scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 500 else 0.1)
+    scheculer = LambdaLR(optimizer, lambda e: 1.0 if e < 200 else 0.1)
     best_loss = float('inf')
     best_epoch = 0
     all_train_loss = []
@@ -130,7 +130,7 @@ def run(n_epoch):
         temp2 = np.maximum(TEMP_BEGIN_AAE * np.exp(-ANNEAL_RATE_AAE * e), TEMP_MIN_AAE)
         print("\n" + "-"*50)
         print("Epoch: {}, Temperature: {:.2f} {:.2f}, Lr: {}".format(e, temp1, temp2, scheculer.get_last_lr()))
-        train_loss = train(train_loader, vae, optimizer, (temp1, temp2, True))
+        train_loss = train(train_loader, vae, optimizer, (temp1, temp2, e < 200))
         validation_loss = test(test_loader, vae, e, (temp1, temp2, False))
         all_train_loss.append(train_loss)
         all_validation_loss.append(validation_loss)
@@ -157,5 +157,5 @@ if __name__ == "__main__":
     os.makedirs(SAMPLE_DIR, exist_ok=True)
     os.makedirs(SAMPLE_DIR_ARGMAX, exist_ok=True)
     os.makedirs(MODEL_DIR, exist_ok=True)
-    run(500)
+    run(1000)
     to_gif(PLOT_DIR)

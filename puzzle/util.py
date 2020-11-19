@@ -105,7 +105,7 @@ def plot_loss(train_loss, validation_loss, n_epoch, plot_dir):
     plt.plot(all_epoch, validation_loss)
     plt.legend(['train_loss', 'validation_loss'])
     plt.yscale('log')
-    plt.savefig("{}/loss.jpg".format(plot_dir))
+    plt.savefig("{}/loss_{}.jpg".format(plot_dir, 'btl' if BACK_TO_LOGIT else ''))
     plt.close(fig)
 
 
