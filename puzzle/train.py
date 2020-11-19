@@ -96,7 +96,7 @@ def test(dataloader, vae, e, temp):
                     n_latent_a=int(np.sqrt(vae.aae.AAE_N_ACTION)),
                     dir=SAMPLE_DIR_ARGMAX
                 )
-            all_a.append(output[-3])
+            all_a.append(output_argmax[-3])
             break
 
         save_action_histogram(torch.cat(all_a, dim=0), e, temp, n_bins=vae.aae.AAE_N_ACTION)
