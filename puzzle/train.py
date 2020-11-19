@@ -9,7 +9,7 @@ from puzzle.sae import CubeSae
 from puzzle.dataset import get_train_and_test_dataset, load_data
 from puzzle.gumble import device
 from puzzle.loss import total_loss
-from puzzle.util import save_action_histogram, check_and_clip_grad_norm, save_image, \
+from puzzle.util import save_action_histogram, check_and_clip_grad_norm, save_image, plot_loss, \
     MODEL_DIR, MODEL_PATH, IMG_DIR, BACK_TO_LOGIT, SAMPLE_DIR, SAMPLE_DIR_ARGMAX, ACTION_DIR
 from puzzle.make_gif import to_gif
 import sys
@@ -82,14 +82,14 @@ def test(dataloader, vae, e, temp):
             validation_loss += loss.item()
             if i == 0:
                 save_image(
-                    output, o1+ noise1, o2+ noise1, e, temp,
+                    output, o1+ noise1, o2+ noise2, e, temp,
                     n_latent_z=int(np.sqrt(vae.aae.AAE_LATENT_DIM)),
                     n_latent_a=int(np.sqrt(vae.aae.AAE_N_ACTION)),
                     dir=SAMPLE_DIR
                 )
 
                 save_image(
-                    output_argmax, o1+ noise1, o2+ noise1, e, temp,
+                    output_argmax, o1+ noise1, o2+ noise2, e, temp,
                     n_latent_z=int(np.sqrt(vae.aae.AAE_LATENT_DIM)),
                     n_latent_a=int(np.sqrt(vae.aae.AAE_N_ACTION)),
                     dir=SAMPLE_DIR_ARGMAX
@@ -139,6 +139,8 @@ def run(n_epoch):
             best_loss = validation_loss
             best_epoch = e
         scheculer.step()
+    plot_loss(all_train_loss, all_validation_loss, n_epoch)
+
 
 if __name__ == "__main__":
     try:
