@@ -157,5 +157,5 @@ if __name__ == "__main__":
     os.makedirs(SAMPLE_DIR, exist_ok=True)
     os.makedirs(SAMPLE_DIR_ARGMAX, exist_ok=True)
     os.makedirs(MODEL_DIR, exist_ok=True)
-    run(1000)
+    run(10)
     to_gif(PLOT_DIR)
